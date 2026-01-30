@@ -42,6 +42,7 @@ export default function NotificationsPage() {
   })
   const [showFilters, setShowFilters] = useState(false)
   const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(20)
   const [totalPages, setTotalPages] = useState(1)
 
 
@@ -56,7 +57,7 @@ export default function NotificationsPage() {
     if (user) {
       fetchNotifications()
     }
-  }, [user, page, search, filters])
+  }, [user, page, limit, search, filters])
 
   const fetchNotifications = async () => {
     try {
@@ -68,7 +69,7 @@ export default function NotificationsPage() {
 
       const params = new URLSearchParams({
         page: page.toString(),
-        limit: '20',
+        limit: limit.toString(),
       })
 
       if (search) params.append('search', search)
@@ -130,7 +131,7 @@ export default function NotificationsPage() {
 
   return (
     <Layout>
-      <div className="max-w-[1200px] mx-auto p-4 sm:p-6 space-y-8">
+      <div className="max-w-[1600px] mx-auto p-4 sm:p-6 space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <h1 className="text-3xl font-bold text-white tracking-tight">Notifications</h1>
@@ -144,9 +145,8 @@ export default function NotificationsPage() {
           )}
         </div>
 
-        {/* Search and Filters */}
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1 relative group">
               <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#71767b] group-focus-within:text-primary-500 transition-colors" />
               <input
@@ -154,14 +154,14 @@ export default function NotificationsPage() {
                 placeholder="Search notifications..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-[#16181c] border border-dark-border rounded-full text-white placeholder-[#71767b] focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                className="w-full pl-12 pr-4 py-2.5 bg-[#16181c] border border-dark-border rounded-full text-white placeholder-[#71767b] focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-all text-sm"
               />
             </div>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center justify-center space-x-2 px-6 py-3 border rounded-full font-bold transition-all ${showFilters ? 'bg-primary-500/10 border-primary-500 text-primary-500' : 'bg-transparent border-dark-border text-[#71767b] hover:bg-[#16181c] hover:text-white'}`}
+              className={`flex items-center justify-center space-x-2 px-5 py-2.5 border rounded-full font-bold transition-all text-sm ${showFilters ? 'bg-primary-500/10 border-primary-500 text-primary-500' : 'bg-transparent border-dark-border text-[#71767b] hover:bg-[#16181c] hover:text-white'}`}
             >
-              <FiFilter />
+              <FiFilter className="w-4 h-4" />
               <span>Filters</span>
             </button>
           </div>
@@ -219,10 +219,10 @@ export default function NotificationsPage() {
           )}
         </div>
 
-        {/* Notifications List */}
-        <div className="space-y-4">
+        {/* Notifications Grid - Changed to Grid Layout */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {notifications.length === 0 ? (
-            <div className="text-center py-20">
+            <div className="col-span-full text-center py-20">
               <div className="w-20 h-20 bg-[#16181c] rounded-full flex items-center justify-center mx-auto mb-6">
                 <FiBell className="w-10 h-10 text-[#71767b]" />
               </div>
@@ -233,7 +233,7 @@ export default function NotificationsPage() {
             notifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`bg-[#16181c] rounded-xl border border-dark-border p-6 hover:bg-[#202327] transition-all cursor-pointer group relative overflow-hidden ${!notification.is_read ? 'bg-[#1a1d21]' : ''}`}
+                className={`bg-[#16181c] rounded-xl border border-dark-border p-4 hover:bg-[#202327] transition-all cursor-pointer group relative overflow-hidden ${!notification.is_read ? 'bg-[#1a1d21]' : ''}`}
                 onClick={() => router.push(`/notifications/${notification.id}`)}
               >
                 {/* Unread Indicator */}
@@ -271,7 +271,7 @@ export default function NotificationsPage() {
                       {notification.title}
                     </h3>
 
-                    <p className="text-[#dbebec] mb-4 line-clamp-2 md:line-clamp-3 leading-relaxed text-[15px] font-light">
+                    <p className="text-[#dbebec] mb-3 line-clamp-2 md:line-clamp-3 leading-relaxed text-[15px] font-light">
                       {notification.content}
                     </p>
 
@@ -318,10 +318,26 @@ export default function NotificationsPage() {
               </div>
             ))
           )}
+        </div>
 
-          {/* Pagination */}
+        {/* Pagination */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-dark-border">
+          <div className="flex items-center gap-2">
+            <span className="text-[#71767b] text-sm">Rows per page:</span>
+            <select
+              value={limit}
+              onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}
+              className="bg-[#16181c] border border-dark-border text-white text-sm rounded-lg p-2 focus:outline-none focus:border-primary-500"
+            >
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+
           {totalPages > 1 && (
-            <div className="flex justify-center items-center space-x-4 pt-8">
+            <div className="flex items-center space-x-4">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}

@@ -60,11 +60,44 @@ export default function ChannelDetailsPage() {
     const [showMembersModal, setShowMembersModal] = useState(false)
     const [showAddMemberModal, setShowAddMemberModal] = useState(false)
 
+    // Member Pagination State
+    const [memberPage, setMemberPage] = useState(1)
+    const [memberLimit, setMemberLimit] = useState(10)
+    const [memberSearch, setMemberSearch] = useState('')
+    const [totalMembers, setTotalMembers] = useState(0)
+    const [memberTotalPages, setMemberTotalPages] = useState(1)
+
     useEffect(() => {
         if (user && id) {
             fetchChannelData()
         }
     }, [user, id])
+
+    // Debounce member search
+    useEffect(() => {
+        if (showMembersModal) {
+            const delayDebounceFn = setTimeout(() => {
+                fetchMembers()
+            }, 500)
+            return () => clearTimeout(delayDebounceFn)
+        }
+    }, [memberPage, memberLimit, memberSearch, showMembersModal])
+
+    const fetchMembers = async () => {
+        try {
+            const params = new URLSearchParams({
+                page: memberPage.toString(),
+                limit: memberLimit.toString(),
+                search: memberSearch
+            })
+            const membersRes = await axios.get(`${API_URL}/channels/${id}/members?${params}`)
+            setChannelMembers(membersRes.data.members)
+            setTotalMembers(membersRes.data.meta.total)
+            setMemberTotalPages(membersRes.data.meta.totalPages)
+        } catch (error) {
+            console.error("Error fetching members:", error)
+        }
+    }
 
     const fetchChannelData = async () => {
         try {
@@ -81,34 +114,24 @@ export default function ChannelDetailsPage() {
                 // Check Membership
                 try {
                     const memberRes = await axios.get(`${API_URL}/channels/${id}/membership`)
-                    // Update state
                     setIsMember(memberRes.data.isMember)
                     setCurrentUserIsAdmin(memberRes.data.isAdmin)
 
-                    // If member or channel admin, fetch posts
                     if (memberRes.data.isMember || user?.role === 'admin' || memberRes.data.isAdmin) {
                         const postsRes = await axios.get(`${API_URL}/channels/${id}/posts`)
                         setPosts(postsRes.data)
                     }
 
-                    // If Super Admin, fetch Channel Admins
                     if (user?.role === 'admin') {
                         const adminsRes = await axios.get(`${API_URL}/channels/${id}/admins`)
                         setChannelAdmins(adminsRes.data)
-                        // Also fetch all users to filter faculty for assignment
                         const usersRes = await axios.get(`${API_URL}/users`)
                         setFacultyUsers(usersRes.data.users)
                         setAllUsers(usersRes.data.users)
                     }
 
-                    // If Admin or Channel Admin, fetch members
-                    const isAdmin = user?.role === 'admin'
-                    const isChanAdmin = memberRes.data.isAdmin
-
-                    if (isAdmin || isChanAdmin) {
-                        const membersRes = await axios.get(`${API_URL}/channels/${id}/members`)
-                        setChannelMembers(membersRes.data)
-                    }
+                    // Initial Members fetch if showing modal (or we can defer until modal open)
+                    // We'll rely on the useEffect[showMembersModal] to trigger fetch
                 } catch (e) {
                     console.error("Access restricted or error checking membership")
                 }
@@ -432,16 +455,32 @@ export default function ChannelDetailsPage() {
                         </div>
 
                         {/* Search & Filter Bar */}
-                        <div className="p-4 bg-[#2b2d31] flex justify-between items-center border-b border-[#1e1f22]">
-                            <div className="relative">
+                        <div className="p-4 bg-[#2b2d31] flex flex-col md:flex-row justify-between items-center border-b border-[#1e1f22] gap-4">
+                            <div className="relative w-full md:w-auto">
                                 <input
                                     type="text"
                                     placeholder="Search members"
-                                    className="bg-[#1e1f22] text-white pl-10 pr-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64 text-sm"
+                                    value={memberSearch}
+                                    onChange={(e) => { setMemberSearch(e.target.value); setMemberPage(1); }}
+                                    className="bg-[#1e1f22] text-white pl-10 pr-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full md:w-64 text-sm"
                                 />
                                 <FiSearch className="absolute left-3 top-2.5 text-[#949BA4]" />
                             </div>
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[#949BA4] text-xs font-semibold uppercase">Rows:</span>
+                                    <select
+                                        value={memberLimit}
+                                        onChange={(e) => { setMemberLimit(Number(e.target.value)); setMemberPage(1); }}
+                                        className="bg-[#1e1f22] text-white text-xs p-1 rounded border border-[#1e1f22] focus:outline-none"
+                                    >
+                                        <option value={10}>10</option>
+                                        <option value={25}>25</option>
+                                        <option value={50}>50</option>
+                                        <option value={100}>100</option>
+                                    </select>
+                                </div>
+
                                 {user?.role === 'admin' && (
                                     <button
                                         onClick={() => setShowAddMemberModal(true)}
@@ -451,9 +490,6 @@ export default function ChannelDetailsPage() {
                                         Add Member
                                     </button>
                                 )}
-                                <span className="text-[#949BA4] text-xs font-semibold uppercase tracking-wide">
-                                    Showing {channelMembers.length} Members
-                                </span>
                             </div>
                         </div>
 
@@ -495,61 +531,83 @@ export default function ChannelDetailsPage() {
                                         <th className="px-6 py-3 text-xs font-bold text-[#949BA4] uppercase tracking-wider border-b border-[#1e1f22]">Name</th>
                                         <th className="px-6 py-3 text-xs font-bold text-[#949BA4] uppercase tracking-wider border-b border-[#1e1f22]">Roles</th>
                                         <th className="px-6 py-3 text-xs font-bold text-[#949BA4] uppercase tracking-wider border-b border-[#1e1f22]">Joined At</th>
-                                        <th className="px-6 py-3 text-right text-xs font-bold text-[#949BA4] uppercase tracking-wider border-b border-[#1e1f22]">Signals</th>
+                                        <th className="px-6 py-3 text-right text-xs font-bold text-[#949BA4] uppercase tracking-wider border-b border-[#1e1f22]">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-[#1e1f22]">
-                                    {channelMembers.map((member) => (
-                                        <tr key={member.id} className="group hover:bg-[#34363c] transition-colors cursor-pointer">
-                                            {/* Name Column */}
-                                            <td className="px-6 py-3 whitespace-nowrap">
-                                                <div className="flex items-center">
-                                                    <div className="h-10 w-10 rounded-full bg-[#5865F2] flex items-center justify-center text-white font-bold mr-3 relative">
-                                                        {member.name.charAt(0).toUpperCase()}
-                                                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[#2b2d31] rounded-full"></div>
+                                    {channelMembers.length === 0 ? (
+                                        <tr><td colSpan={4} className="p-6 text-center text-[#949BA4]">No members found.</td></tr>
+                                    ) : (
+                                        channelMembers.map((member) => (
+                                            <tr key={member.id} className="group hover:bg-[#34363c] transition-colors cursor-pointer">
+                                                {/* Name Column */}
+                                                <td className="px-6 py-3 whitespace-nowrap">
+                                                    <div className="flex items-center">
+                                                        <div className="h-10 w-10 rounded-full bg-[#5865F2] flex items-center justify-center text-white font-bold mr-3 relative">
+                                                            {member.name.charAt(0).toUpperCase()}
+                                                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[#2b2d31] rounded-full"></div>
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-sm font-semibold text-white group-hover:underline">{member.name}</div>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <div className="text-sm font-semibold text-white group-hover:underline">{member.name}</div>
-                                                        {/* Email hidden as per request */}
-                                                        {/* <div className="text-xs text-[#949BA4]">{member.email}</div> */}
+                                                </td>
+
+                                                {/* Roles Column */}
+                                                <td className="px-6 py-3 whitespace-nowrap">
+                                                    <div className="flex items-center">
+                                                        <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#248045] text-white text-[10px] font-bold uppercase tracking-wide">
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                                            {member.role === 'admin' ? 'Admin' : member.role === 'faculty' ? 'Faculty' : 'Student'}
+                                                        </span>
                                                     </div>
-                                                </div>
-                                            </td>
+                                                </td>
 
-                                            {/* Roles Column */}
-                                            <td className="px-6 py-3 whitespace-nowrap">
-                                                <div className="flex items-center">
-                                                    <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#248045] text-white text-[10px] font-bold uppercase tracking-wide">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
-                                                        {member.role === 'admin' ? 'Admin' : member.role === 'faculty' ? 'Faculty' : 'Student'}
-                                                    </span>
-                                                </div>
-                                            </td>
+                                                {/* Joined At Column */}
+                                                <td className="px-6 py-3 whitespace-nowrap text-xs text-[#949BA4] font-medium">
+                                                    {member.joined_at ? format(new Date(member.joined_at), 'MMM d, yyyy') : '-'}
+                                                </td>
 
-                                            {/* Joined At Column */}
-                                            <td className="px-6 py-3 whitespace-nowrap text-xs text-[#949BA4] font-medium">
-                                                {member.joined_at ? format(new Date(member.joined_at), 'MMM d, yyyy') : '-'}
-                                            </td>
-
-                                            {/* Actions / Signals Column */}
-                                            <td className="px-6 py-3 whitespace-nowrap text-right text-sm">
-                                                <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button
-                                                        onClick={(e) => { e.stopPropagation(); handleKickMember(member.id); }}
-                                                        className="text-[#949BA4] hover:text-red-500 p-2 rounded-md hover:bg-[#1e1f22] transition-colors"
-                                                        title="Kick Member"
-                                                    >
-                                                        <FiTrash2 />
-                                                    </button>
-                                                    <button className="text-[#949BA4] hover:text-white p-2 rounded-md hover:bg-[#1e1f22] transition-colors">
-                                                        <FiMoreVertical />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                                {/* Actions Column */}
+                                                <td className="px-6 py-3 whitespace-nowrap text-right text-sm">
+                                                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); handleKickMember(member.id); }}
+                                                            className="text-[#949BA4] hover:text-red-500 p-2 rounded-md hover:bg-[#1e1f22] transition-colors"
+                                                            title="Kick Member"
+                                                        >
+                                                            <FiTrash2 />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
                                 </tbody>
                             </table>
+                        </div>
+
+                        {/* Footer Pagination */}
+                        <div className="p-4 bg-[#2b2d31] border-t border-[#1e1f22] flex items-center justify-between">
+                            <span className="text-[#949BA4] text-xs">
+                                Showing page {memberPage} of {memberTotalPages} ({totalMembers} total)
+                            </span>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setMemberPage(p => Math.max(1, p - 1))}
+                                    disabled={memberPage === 1}
+                                    className="text-xs bg-[#1e1f22] text-white px-3 py-1.5 rounded disabled:opacity-50 hover:bg-[#34363c] transition-colors"
+                                >
+                                    Previous
+                                </button>
+                                <button
+                                    onClick={() => setMemberPage(p => Math.min(memberTotalPages, p + 1))}
+                                    disabled={memberPage === memberTotalPages || memberTotalPages === 0}
+                                    className="text-xs bg-[#1e1f22] text-white px-3 py-1.5 rounded disabled:opacity-50 hover:bg-[#34363c] transition-colors"
+                                >
+                                    Next
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

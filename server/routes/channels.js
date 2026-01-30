@@ -301,10 +301,14 @@ router.post('/:id/members', authenticate, authorize('admin'), async (req, res) =
     }
 });
 
-// Get all members (Channel Admin or Super Admin)
+// Get all members (Channel Admin or Super Admin) - Paginated & Searchable
 router.get('/:id/members', authenticate, async (req, res) => {
     try {
         const channelId = req.params.id;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const search = req.query.search || '';
+        const offset = (page - 1) * limit;
 
         // Check permission
         const isAdmin = req.user.role === 'admin';
@@ -321,15 +325,46 @@ router.get('/:id/members', authenticate, async (req, res) => {
             return res.status(403).json({ message: 'Access denied' });
         }
 
-        const result = await db.pool.query(
-            `SELECT u.id, u.name, u.email, u.role, cm.joined_at
-             FROM channel_members cm
-             JOIN users u ON cm.user_id = u.id
-             WHERE cm.channel_id = $1
-             ORDER BY cm.joined_at DESC`,
-            [channelId]
-        );
-        res.json(result.rows);
+        const params = [channelId];
+        let searchClause = '';
+        if (search) {
+            params.push(`%${search}%`);
+            searchClause = `AND (u.name ILIKE $${params.length} OR u.email ILIKE $${params.length})`;
+        }
+
+        // Count Members
+        const countQuery = `
+            SELECT COUNT(*) 
+            FROM channel_members cm
+            JOIN users u ON cm.user_id = u.id
+            WHERE cm.channel_id = $1 ${searchClause}
+        `;
+        const countRes = await db.pool.query(countQuery, params);
+        const totalMembers = parseInt(countRes.rows[0].count);
+        const totalPages = Math.ceil(totalMembers / limit);
+
+        // Fetch Data
+        params.push(limit, offset);
+        const dataQuery = `
+            SELECT u.id, u.name, u.email, u.role, cm.joined_at
+            FROM channel_members cm
+            JOIN users u ON cm.user_id = u.id
+            WHERE cm.channel_id = $1 ${searchClause}
+            ORDER BY cm.joined_at DESC
+            LIMIT $${params.length - 1} OFFSET $${params.length}
+        `;
+
+        const result = await db.pool.query(dataQuery, params);
+
+        res.json({
+            members: result.rows,
+            meta: {
+                total: totalMembers,
+                page,
+                limit,
+                totalPages
+            }
+        });
     } catch (error) {
         console.error('Error fetching members:', error);
         res.status(500).json({ message: 'Server error' });

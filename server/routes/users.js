@@ -6,17 +6,67 @@ const { authenticate, authorize } = require('../middleware/auth');
 const router = express.Router();
 
 // Get all users (Admin only)
+// Get all users (Admin only) - Paginated, Searchable, Filterable
 router.get('/', authenticate, authorize('admin'), async (req, res) => {
   try {
-    const result = await db.pool.query(
-      `SELECT u.id, u.email, u.name, u.role, u.department_id, u.year, u.designation, u.subjects, 
-              d.name as department_name, u.created_at
-       FROM users u
-       LEFT JOIN departments d ON u.department_id = d.id
-       ORDER BY u.created_at DESC`
-    );
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || '';
+    const role = req.query.role || '';
+    const offset = (page - 1) * limit;
 
-    res.json({ users: result.rows });
+    const params = [];
+    const conditions = [];
+
+    // Base strings
+    let baseQuery = `
+      FROM users u
+      LEFT JOIN departments d ON u.department_id = d.id
+    `;
+
+    // Search condition
+    if (search) {
+      params.push(`%${search}%`);
+      conditions.push(`(u.name ILIKE $${params.length} OR u.email ILIKE $${params.length})`);
+    }
+
+    // Role filter
+    if (role && role !== 'all') {
+      params.push(role);
+      conditions.push(`u.role = $${params.length}`);
+    }
+
+    if (conditions.length > 0) {
+      baseQuery += ` WHERE ${conditions.join(' AND ')}`;
+    }
+
+    // 1. Get Total Count
+    const countQuery = `SELECT COUNT(*) ${baseQuery}`;
+    const countResult = await db.pool.query(countQuery, params);
+    const totalUsers = parseInt(countResult.rows[0].count);
+    const totalPages = Math.ceil(totalUsers / limit);
+
+    // 2. Get Data
+    const dataQuery = `
+      SELECT u.id, u.email, u.name, u.role, u.department_id, u.year, u.designation, u.subjects, 
+             d.name as department_name, u.created_at
+      ${baseQuery}
+      ORDER BY u.created_at DESC
+      LIMIT $${params.length + 1} OFFSET $${params.length + 2}
+    `;
+
+    const listParams = [...params, limit, offset];
+    const result = await db.pool.query(dataQuery, listParams);
+
+    res.json({
+      users: result.rows,
+      meta: {
+        total: totalUsers,
+        page,
+        limit,
+        totalPages
+      }
+    });
   } catch (error) {
     console.error('Get users error:', error);
     res.status(500).json({ message: 'Server error' });

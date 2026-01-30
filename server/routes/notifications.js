@@ -55,7 +55,7 @@ router.get('/', authenticate, async (req, res) => {
       LEFT JOIN users u ON n.created_by = u.id
       LEFT JOIN departments d ON n.department_id = d.id
       LEFT JOIN acknowledgments a ON n.id = a.notification_id
-      WHERE 1=1
+      WHERE 1=1 AND (n.scheduled_at IS NULL OR n.scheduled_at <= CURRENT_TIMESTAMP)
     `;
     const params = [req.user.id];
     let paramCount = 2;
@@ -125,7 +125,7 @@ router.get('/', authenticate, async (req, res) => {
 
     const result = await db.pool.query(query, params);
 
-    let countQuery = `SELECT COUNT(DISTINCT n.id) as total FROM notifications n WHERE 1=1`;
+    let countQuery = `SELECT COUNT(DISTINCT n.id) as total FROM notifications n WHERE 1=1 AND (n.scheduled_at IS NULL OR n.scheduled_at <= CURRENT_TIMESTAMP)`;
     const countParams = [];
     let countParamCount = 1;
 
@@ -237,6 +237,10 @@ router.post('/', authenticate, authorize('admin', 'faculty'), upload.single('att
     }
 
     const { title, content, category, priority, department_id, year, scheduled_at, is_pinned } = req.body;
+
+    if (scheduled_at && new Date(scheduled_at) < new Date()) {
+      return res.status(400).json({ message: 'Scheduled time cannot be in the past' });
+    }
     const attachment_url = req.file ? `/uploads/${req.file.filename}` : null;
     const attachment_type = req.file ? req.file.mimetype : null;
 

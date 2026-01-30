@@ -196,12 +196,35 @@ export default function ODPage() {
                                                 {getStatusBadge(request.status)}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <button
-                                                    onClick={() => router.push(`/od/${request.id}`)}
-                                                    className="text-primary-500 hover:text-primary-400 font-bold hover:underline"
-                                                >
-                                                    View Details
-                                                </button>
+                                                <div className="flex items-center gap-3">
+                                                    <button
+                                                        onClick={() => router.push(`/od/${request.id}`)}
+                                                        className="text-primary-500 hover:text-primary-400 font-bold hover:underline"
+                                                    >
+                                                        View
+                                                    </button>
+                                                    {user?.role === 'student' &&
+                                                        (request.status === 'pending_coordinator' || request.status === 'pending_hod') && (
+                                                            <button
+                                                                onClick={async (e) => {
+                                                                    e.stopPropagation();
+                                                                    if (confirm('Are you sure you want to delete this pending request?')) {
+                                                                        try {
+                                                                            const token = Cookies.get('token');
+                                                                            if (token) axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+                                                                            await axios.delete(`${API_URL}/od/${request.id}`);
+                                                                            setRequests(requests.filter(r => r.id !== request.id));
+                                                                        } catch (err) {
+                                                                            alert('Failed to delete request');
+                                                                        }
+                                                                    }
+                                                                }}
+                                                                className="text-red-500 hover:text-red-400 font-bold hover:underline"
+                                                            >
+                                                                Delete
+                                                            </button>
+                                                        )}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))

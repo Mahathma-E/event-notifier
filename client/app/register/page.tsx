@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import axios from 'axios'
 import { auth as firebaseAuth } from '@/lib/firebase'
+import { validatePassword } from '@/utils/passwordUtils'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
 
@@ -64,6 +65,16 @@ function RegisterForm() {
     setError('')
     setSuccess('')
     setLoading(true)
+
+    // Password Validation for new accounts
+    if (!isCompletingProfile) {
+      const { isValid, error: passError } = validatePassword(formData.password);
+      if (!isValid && passError) {
+        setError(passError);
+        setLoading(false);
+        return; // Stop registration
+      }
+    }
 
     try {
       if (isCompletingProfile) {

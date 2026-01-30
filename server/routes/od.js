@@ -151,4 +151,35 @@ router.patch('/:id/status', authenticate, authorize('admin', 'faculty'), [
     }
 });
 
+// Delete OD request (Student only, if pending)
+router.delete('/:id', authenticate, authorize('student'), async (req, res) => {
+    try {
+        const odId = req.params.id;
+        const userId = req.user.id;
+
+        // Check if OD exists and belongs to user
+        const checkQuery = 'SELECT * FROM od_requests WHERE id = $1 AND user_id = $2';
+        const checkResult = await db.pool.query(checkQuery, [odId, userId]);
+
+        if (checkResult.rows.length === 0) {
+            return res.status(404).json({ message: 'OD request not found or unauthorized' });
+        }
+
+        const odRequest = checkResult.rows[0];
+
+        // Check if status allows deletion
+        if (odRequest.status !== 'pending_coordinator' && odRequest.status !== 'pending_hod') {
+            return res.status(400).json({ message: 'Cannot delete OD request that is already processed' });
+        }
+
+        // Delete
+        await db.pool.query('DELETE FROM od_requests WHERE id = $1', [odId]);
+
+        res.json({ message: 'OD request deleted successfully' });
+    } catch (error) {
+        console.error('Delete OD request error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 module.exports = router;

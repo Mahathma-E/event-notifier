@@ -297,6 +297,7 @@ export default function CreateNotificationPage() {
                 name="scheduled_at"
                 value={formData.scheduled_at}
                 onChange={handleChange}
+                min={new Date().toISOString().slice(0, 16)}
                 className="w-full px-4 py-3 bg-black border border-dark-border rounded-lg text-white focus:outline-none focus:border-primary-500 transition-colors [color-scheme:dark]"
               />
             </div>

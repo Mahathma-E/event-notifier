@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import Layout from '@/components/Layout'
@@ -20,6 +20,26 @@ export default function NewODRequestPage() {
         end_date: '',
         total_days: 1,
     })
+
+    useEffect(() => {
+        if (formData.start_date && formData.end_date) {
+            const start = new Date(formData.start_date)
+            const end = new Date(formData.end_date)
+
+            // Calculate difference in time
+            const diffTime = end.getTime() - start.getTime()
+
+            // Calculate difference in days (divide by milliseconds in a day)
+            // Add 1 to include both start and end dates
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
+
+            if (diffDays > 0) {
+                setFormData(prev => ({ ...prev, total_days: diffDays }))
+            } else {
+                setFormData(prev => ({ ...prev, total_days: 1 }))
+            }
+        }
+    }, [formData.start_date, formData.end_date])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
