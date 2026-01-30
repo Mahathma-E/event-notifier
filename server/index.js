@@ -45,6 +45,8 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/departments', require('./routes/departments'));
+app.use('/api/roles', require('./routes/roles'));
+app.use('/api/channels', require('./routes/channels'));
 app.use('/api/od', require('./routes/od'));
 
 // Health check

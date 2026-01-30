@@ -132,4 +132,26 @@ router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
   }
 });
 
+// Get user's channel feed (posts from joined channels)
+router.get('/channel-feed', authenticate, async (req, res) => {
+  try {
+    const query = `
+      SELECT cp.id, cp.title, cp.content, cp.created_at, cp.channel_id,
+             c.name as channel_name, u.name as author_name
+      FROM channel_posts cp
+      JOIN channel_members cm ON cp.channel_id = cm.channel_id
+      JOIN channels c ON cp.channel_id = c.id
+      JOIN users u ON cp.created_by = u.id
+      WHERE cm.user_id = $1
+      ORDER BY cp.created_at DESC
+      LIMIT 50
+    `;
+    const result = await db.pool.query(query, [req.user.id]);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching channel feed:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;

@@ -61,14 +61,38 @@ router.get('/', authenticate, async (req, res) => {
     let paramCount = 2;
 
     // Apply role-based filtering
+    // Logic: User sees notification IF:
+    // 1. (Matches Dept AND Matches Year) 
+    //    OR
+    // 2. (Matches a Target Role)
+
     if (req.user.role === 'student') {
       query += ` AND (
-        (n.department_id IS NULL OR n.department_id = $${paramCount++}) AND
-        (n.year IS NULL OR n.year = $${paramCount++})
-      )`;
+         (
+           (n.department_id IS NULL OR n.department_id = $${paramCount++}) AND
+           (n.year IS NULL OR n.year = $${paramCount++})
+         )
+         OR
+         EXISTS (
+           SELECT 1 FROM notification_roles nr
+           JOIN user_roles ur ON nr.role_id = ur.role_id
+           WHERE nr.notification_id = n.id AND ur.user_id = $1
+         )
+       )`;
       params.push(req.user.department_id, req.user.year);
     } else if (req.user.role === 'faculty') {
-      query += ` AND (n.department_id IS NULL OR n.department_id = $${paramCount++})`;
+      // Faculty can see dept notifications OR role notifications
+      // Usually faculty wants to see everything from their dept or nothing?
+      // Let's allow them to see what matches their Dept OR Role.
+      query += ` AND (
+         (n.department_id IS NULL OR n.department_id = $${paramCount++}) 
+         OR
+         EXISTS (
+           SELECT 1 FROM notification_roles nr
+           JOIN user_roles ur ON nr.role_id = ur.role_id
+           WHERE nr.notification_id = n.id AND ur.user_id = $1
+         )
+       )`;
       params.push(req.user.department_id);
     }
 
@@ -107,12 +131,28 @@ router.get('/', authenticate, async (req, res) => {
 
     if (req.user.role === 'student') {
       countQuery += ` AND (
-        (n.department_id IS NULL OR n.department_id = $${countParamCount++}) AND
-        (n.year IS NULL OR n.year = $${countParamCount++})
+        (
+          (n.department_id IS NULL OR n.department_id = $${countParamCount++}) AND
+          (n.year IS NULL OR n.year = $${countParamCount++})
+        )
+        OR
+        EXISTS (
+          SELECT 1 FROM notification_roles nr
+          JOIN user_roles ur ON nr.role_id = ur.role_id
+          WHERE nr.notification_id = n.id AND ur.user_id = $1
+        )
       )`;
       countParams.push(req.user.department_id, req.user.year);
     } else if (req.user.role === 'faculty') {
-      countQuery += ` AND (n.department_id IS NULL OR n.department_id = $${countParamCount++})`;
+      countQuery += ` AND (
+         (n.department_id IS NULL OR n.department_id = $${countParamCount++}) 
+         OR
+         EXISTS (
+           SELECT 1 FROM notification_roles nr
+           JOIN user_roles ur ON nr.role_id = ur.role_id
+           WHERE nr.notification_id = n.id AND ur.user_id = $1
+         )
+       )`;
       countParams.push(req.user.department_id);
     }
 
@@ -200,9 +240,9 @@ router.post('/', authenticate, authorize('admin', 'faculty'), upload.single('att
     const attachment_url = req.file ? `/uploads/${req.file.filename}` : null;
     const attachment_type = req.file ? req.file.mimetype : null;
 
-    if (req.user.role === 'faculty' && department_id && department_id !== req.user.department_id) {
-      return res.status(403).json({ message: 'You can only create notifications for your department' });
-    }
+    // if (req.user.role === 'faculty' && department_id && department_id !== req.user.department_id) {
+    //   return res.status(403).json({ message: 'You can only create notifications for your department' });
+    // }
 
     const result = await db.pool.query(
       `INSERT INTO notifications (title, content, category, priority, created_by, department_id, year, scheduled_at, is_pinned, attachment_url, attachment_type)
@@ -213,7 +253,39 @@ router.post('/', authenticate, authorize('admin', 'faculty'), upload.single('att
 
     const notification = result.rows[0];
 
+    // Handle target roles if provided
+    // Expecting 'roles' field in body, which might come as a JSON string if using FormData
+    let targetRoles = [];
+    if (req.body.roles) {
+      try {
+        // If it comes from FormData, it might be a stringified array or individual values
+        if (typeof req.body.roles === 'string') {
+          // Check if it's a JSON array string
+          if (req.body.roles.startsWith('[')) {
+            targetRoles = JSON.parse(req.body.roles);
+          } else {
+            // Comma separated or single value? Let's assume JSON or single ID
+            targetRoles = [req.body.roles];
+          }
+        } else if (Array.isArray(req.body.roles)) {
+          targetRoles = req.body.roles;
+        }
+      } catch (e) {
+        console.error('Error parsing roles:', e);
+      }
+    }
+
+    if (targetRoles.length > 0) {
+      for (const roleId of targetRoles) {
+        await db.pool.query(
+          `INSERT INTO notification_roles (notification_id, role_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+          [notification.id, roleId]
+        );
+      }
+    }
+
     // Emit real-time notification
+
     const io = req.app.get('io');
     if (io) {
       let targetQuery = 'SELECT id FROM users WHERE 1=1';

@@ -14,6 +14,7 @@ export default function CreateNotificationPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const [departments, setDepartments] = useState<any[]>([])
+  const [roles, setRoles] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
@@ -23,9 +24,9 @@ export default function CreateNotificationPage() {
     department_id: '',
     year: '',
     scheduled_at: '',
-    scheduled_at: '',
     is_pinned: false,
     attachment: null as File | null,
+    roles: [] as number[],
   })
 
   useEffect(() => {
@@ -37,6 +38,7 @@ export default function CreateNotificationPage() {
   useEffect(() => {
     if (user) {
       fetchDepartments()
+      fetchRoles()
       // Set default department for faculty
       if (user.role === 'faculty' && user.department_id) {
         setFormData((prev) => ({ ...prev, department_id: user.department_id?.toString() || '' }))
@@ -57,6 +59,15 @@ export default function CreateNotificationPage() {
     }
   }
 
+  const fetchRoles = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/roles`)
+      setRoles(response.data)
+    } catch (error) {
+      console.error('Failed to fetch roles')
+    }
+  }
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -70,6 +81,16 @@ export default function CreateNotificationPage() {
         [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
       })
     }
+  }
+
+  const toggleRole = (roleId: number) => {
+    setFormData(prev => {
+      if (prev.roles.includes(roleId)) {
+        return { ...prev, roles: prev.roles.filter(id => id !== roleId) }
+      } else {
+        return { ...prev, roles: [...prev.roles, roleId] }
+      }
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -93,6 +114,9 @@ export default function CreateNotificationPage() {
       payload.append('is_pinned', String(formData.is_pinned))
       if (formData.attachment) {
         payload.append('attachment', formData.attachment)
+      }
+      if (formData.roles.length > 0) {
+        payload.append('roles', JSON.stringify(formData.roles))
       }
 
       await axios.post(`${API_URL}/notifications`, payload, {
@@ -212,8 +236,7 @@ export default function CreateNotificationPage() {
                   name="department_id"
                   value={formData.department_id}
                   onChange={handleChange}
-                  disabled={user?.role === 'faculty'}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="">All Departments</option>
                   {departments.map((dept) => (
@@ -241,6 +264,29 @@ export default function CreateNotificationPage() {
                   <option value="4">4th Year</option>
                 </select>
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Target Roles (Optional)
+              </label>
+              <div className="flex flex-wrap gap-2 p-3 border border-gray-300 rounded-lg max-h-40 overflow-y-auto">
+                {roles.map(role => (
+                  <button
+                    key={role.id}
+                    type="button"
+                    onClick={() => toggleRole(role.id)}
+                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors border ${formData.roles.includes(role.id)
+                      ? 'bg-primary-100 text-primary-800 border-primary-500'
+                      : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                      }`}
+                  >
+                    {role.name}
+                  </button>
+                ))}
+                {roles.length === 0 && <span className="text-sm text-gray-500">No roles available.</span>}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Select roles to target specific groups (e.g. Placement, Sports).</p>
             </div>
 
             <div>
