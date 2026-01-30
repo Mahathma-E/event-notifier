@@ -79,7 +79,7 @@ export default function UsersPage() {
     return (
       <Layout>
         <div className="flex items-center justify-center min-h-[40vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
         </div>
       </Layout>
     )
@@ -89,74 +89,78 @@ export default function UsersPage() {
     <Layout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
+          <h1 className="text-3xl font-bold text-white">User Management</h1>
         </div>
 
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-[#16181c] rounded-xl border border-dark-border overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-black/20 border-b border-dark-border">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-bold text-[#71767b] uppercase tracking-wider">
                     Name
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-bold text-[#71767b] uppercase tracking-wider">
                     Email
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-bold text-[#71767b] uppercase tracking-wider">
                     Role
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-bold text-[#71767b] uppercase tracking-wider">
                     Department
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-bold text-[#71767b] uppercase tracking-wider">
                     Year
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-bold text-[#71767b] uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-dark-border">
                 {users.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <tr key={user.id} className="hover:bg-[#202327] transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-white">
                       {user.name}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[#71767b]">
                       {user.email}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
-                        className={`px-2 py-1 text-xs font-semibold rounded capitalize ${user.role === 'admin'
-                          ? 'bg-purple-100 text-purple-800'
-                          : user.role === 'faculty'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-green-100 text-green-800'
+                        className={`px-2.5 py-0.5 text-xs font-bold rounded border uppercase tracking-wide ${user.role === 'admin'
+                            ? 'bg-purple-500/10 text-purple-500 border-purple-500/20'
+                            : user.role === 'faculty'
+                              ? 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+                              : 'bg-green-500/10 text-green-500 border-green-500/20'
                           }`}
                       >
                         {user.role}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[#71767b]">
                       {user.department_name || '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[#71767b]">
                       {user.year ? `Year ${user.year}` : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                      <button
-                        onClick={() => router.push(`/users/${user.id}/edit`)}
-                        className="text-primary-600 hover:text-primary-900 p-2 hover:bg-primary-50 rounded-lg transition-colors"
-                      >
-                        <FiEdit className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(user.id)}
-                        className="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded-lg transition-colors"
-                      >
-                        <FiTrash2 className="w-5 h-5" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => router.push(`/users/${user.id}/edit`)}
+                          className="text-[#71767b] hover:text-primary-500 p-2 hover:bg-primary-500/10 rounded-full transition-colors"
+                          title="Edit User"
+                        >
+                          <FiEdit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(user.id)}
+                          className="text-[#71767b] hover:text-red-500 p-2 hover:bg-red-500/10 rounded-full transition-colors"
+                          title="Delete User"
+                        >
+                          <FiTrash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

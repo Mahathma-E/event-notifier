@@ -78,7 +78,7 @@ export default function ODDetailsPage() {
         return (
             <Layout>
                 <div className="flex items-center justify-center min-h-[40vh]">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
                 </div>
             </Layout>
         )
@@ -87,9 +87,12 @@ export default function ODDetailsPage() {
     if (!request) {
         return (
             <Layout>
-                <div className="text-center py-12">
-                    <p className="text-gray-500">OD request not found</p>
-                    <button onClick={() => router.push('/od')} className="mt-4 text-primary-600 font-medium">
+                <div className="text-center py-20">
+                    <p className="text-[#71767b] text-lg mb-4">OD request not found</p>
+                    <button
+                        onClick={() => router.push('/od')}
+                        className="text-primary-500 font-bold hover:underline"
+                    >
                         Go back to requests
                     </button>
                 </div>
@@ -102,58 +105,60 @@ export default function ODDetailsPage() {
             <div className="max-w-3xl mx-auto space-y-6">
                 <button
                     onClick={() => router.push('/od')}
-                    className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+                    className="flex items-center space-x-2 text-[#71767b] hover:text-white transition-colors group"
                 >
-                    <FiArrowLeft />
+                    <FiArrowLeft className="group-hover:-translate-x-1 transition-transform" />
                     <span>Back to Requests</span>
                 </button>
 
-                <div className="bg-white rounded-lg shadow overflow-hidden">
-                    <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-                        <h1 className="text-2xl font-bold text-gray-900">OD Request Details</h1>
-                        <span className={`px-3 py-1 rounded-full text-sm font-semibold capitalize ${request.status === 'approved' ? 'bg-green-100 text-green-800' :
-                            request.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                                'bg-yellow-100 text-yellow-800'
+                <div className="bg-[#16181c] rounded-xl border border-dark-border overflow-hidden shadow-sm">
+                    <div className="p-6 sm:p-8 border-b border-dark-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <h1 className="text-2xl font-bold text-white">OD Request Details</h1>
+                        <span className={`px-3 py-1 rounded border text-xs font-bold uppercase tracking-wide ${request.status === 'approved'
+                                ? 'bg-green-500/10 text-green-500 border-green-500/20'
+                                : request.status === 'rejected'
+                                    ? 'bg-red-500/10 text-red-500 border-red-500/20'
+                                    : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
                             }`}>
-                            {request.status}
+                            {request.status.replace('_', ' ')}
                         </span>
                     </div>
 
-                    <div className="p-6 space-y-6">
-                        <div className="grid grid-cols-2 gap-6">
+                    <div className="p-6 sm:p-8 space-y-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                             <div>
-                                <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Student Name</p>
-                                <p className="mt-1 text-lg text-gray-900">{request.user_name}</p>
-                                <p className="text-sm text-gray-500">{request.user_email}</p>
+                                <p className="text-xs font-bold text-[#71767b] uppercase tracking-wide mb-1">Student Name</p>
+                                <p className="text-lg font-bold text-white">{request.user_name}</p>
+                                <p className="text-sm text-[#71767b]">{request.user_email}</p>
                             </div>
                             <div>
-                                <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Department</p>
-                                <p className="mt-1 text-lg text-gray-900">{request.department_name || '-'}</p>
+                                <p className="text-xs font-bold text-[#71767b] uppercase tracking-wide mb-1">Department</p>
+                                <p className="text-lg font-bold text-white">{request.department_name || '-'}</p>
                             </div>
                         </div>
 
                         <div>
-                            <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Period</p>
-                            <p className="mt-1 text-lg text-gray-900">
-                                {format(new Date(request.start_date), 'MMMM d, yyyy')} to {format(new Date(request.end_date), 'MMMM d, yyyy')}
+                            <p className="text-xs font-bold text-[#71767b] uppercase tracking-wide mb-1">Period</p>
+                            <p className="text-lg font-bold text-white">
+                                {format(new Date(request.start_date), 'MMMM d, yyyy')} <span className="text-[#71767b] mx-2">to</span> {format(new Date(request.end_date), 'MMMM d, yyyy')}
                             </p>
-                            <p className="text-sm text-gray-500">{request.total_days} day(s)</p>
+                            <p className="text-sm text-[#71767b] mt-1">{request.total_days} day(s)</p>
                         </div>
 
                         <div>
-                            <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Reason / Purpose</p>
-                            <div className="mt-2 p-4 bg-gray-50 rounded-lg text-gray-900 border border-gray-200">
+                            <p className="text-xs font-bold text-[#71767b] uppercase tracking-wide mb-2">Reason / Purpose</p>
+                            <div className="p-4 bg-black rounded-lg text-[#dbebec] border border-dark-border">
                                 {request.reason}
                             </div>
                         </div>
 
                         {request.comment && (
                             <div>
-                                <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Approver's Comment</p>
-                                <div className="mt-2 p-4 bg-yellow-50 rounded-lg text-gray-900 border border-yellow-200 italic">
+                                <p className="text-xs font-bold text-[#71767b] uppercase tracking-wide mb-2">Approver's Comment</p>
+                                <div className="p-4 bg-[#2f3336]/30 rounded-lg text-[#dbebec] border border-dark-border italic">
                                     "{request.comment}"
                                 </div>
-                                <p className="mt-2 text-xs text-gray-500">By {request.action_by_name}</p>
+                                <p className="mt-2 text-xs text-[#71767b]">By {request.action_by_name}</p>
                             </div>
                         )}
 
@@ -165,22 +170,22 @@ export default function ODDetailsPage() {
                                 (request.status === 'pending_coordinator' && user?.designation === 'hod') ||
                                 (user?.role === 'admin' && (request.status === 'pending_coordinator' || request.status === 'pending_hod'))
                             ) && (
-                                <div className="mt-8 pt-8 border-t border-gray-200 space-y-4">
-                                    <h3 className="text-lg font-semibold text-gray-900">Take Action</h3>
+                                <div className="mt-8 pt-8 border-t border-dark-border space-y-4">
+                                    <h3 className="text-lg font-bold text-white">Take Action</h3>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Comment (Optional)</label>
+                                        <label className="block text-xs font-bold text-[#71767b] mb-2 uppercase tracking-wide">Comment (Optional)</label>
                                         <textarea
                                             placeholder="Provide a reason for approval or rejection..."
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 h-24"
+                                            className="w-full px-4 py-3 bg-black border border-dark-border rounded-lg text-white focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors h-24 placeholder-[#71767b]"
                                             value={comment}
                                             onChange={(e) => setComment(e.target.value)}
                                         />
                                     </div>
-                                    <div className="flex space-x-4">
+                                    <div className="flex gap-4 pt-2">
                                         <button
                                             onClick={() => handleStatusUpdate('approved')}
                                             disabled={submitting}
-                                            className="flex-1 flex items-center justify-center space-x-2 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                                            className="flex-1 flex items-center justify-center space-x-2 bg-green-500 text-white py-3 px-4 rounded-full font-bold hover:bg-green-600 transition-colors disabled:opacity-50 shadow-lg shadow-green-500/20"
                                         >
                                             <FiCheck />
                                             <span>Approve</span>
@@ -188,7 +193,7 @@ export default function ODDetailsPage() {
                                         <button
                                             onClick={() => handleStatusUpdate('rejected')}
                                             disabled={submitting}
-                                            className="flex-1 flex items-center justify-center space-x-2 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                                            className="flex-1 flex items-center justify-center space-x-2 bg-red-500 text-white py-3 px-4 rounded-full font-bold hover:bg-red-600 transition-colors disabled:opacity-50 shadow-lg shadow-red-500/20"
                                         >
                                             <FiX />
                                             <span>Reject</span>

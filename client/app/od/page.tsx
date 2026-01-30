@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import Layout from '@/components/Layout'
 import axios from 'axios'
 import Cookies from 'js-cookie'
-import { FiPlus, FiClock, FiCheckCircle, FiXCircle } from 'react-icons/fi'
+import { FiPlus, FiClock, FiCheckCircle, FiXCircle, FiDownload } from 'react-icons/fi'
 import { format } from 'date-fns'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
@@ -64,15 +64,15 @@ export default function ODPage() {
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'approved':
-                return <span className="px-2 py-1 text-xs font-semibold rounded bg-green-100 text-green-800">Approved</span>
+                return <span className="px-2.5 py-1 text-xs font-bold rounded bg-green-500/10 text-green-500 border border-green-500/20 uppercase tracking-wide">Approved</span>
             case 'rejected':
-                return <span className="px-2 py-1 text-xs font-semibold rounded bg-red-100 text-red-800">Rejected</span>
+                return <span className="px-2.5 py-1 text-xs font-bold rounded bg-red-500/10 text-red-500 border border-red-500/20 uppercase tracking-wide">Rejected</span>
             case 'pending_coordinator':
-                return <span className="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Pending Coordinator</span>
+                return <span className="px-2.5 py-1 text-xs font-bold rounded bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 uppercase tracking-wide">Pending Coordinator</span>
             case 'pending_hod':
-                return <span className="px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800">Pending HOD</span>
+                return <span className="px-2.5 py-1 text-xs font-bold rounded bg-blue-500/10 text-blue-500 border border-blue-500/20 uppercase tracking-wide">Pending HOD</span>
             default:
-                return <span className="px-2 py-1 text-xs font-semibold rounded bg-gray-100 text-gray-800">{status}</span>
+                return <span className="px-2.5 py-1 text-xs font-bold rounded bg-gray-500/10 text-gray-500 border border-gray-500/20 uppercase tracking-wide">{status}</span>
         }
     }
 
@@ -102,7 +102,7 @@ export default function ODPage() {
         return (
             <Layout>
                 <div className="flex items-center justify-center min-h-[40vh]">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
                 </div>
             </Layout>
         )
@@ -110,75 +110,87 @@ export default function ODPage() {
 
     return (
         <Layout>
-            <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                    <h1 className="text-3xl font-bold text-gray-900">OD Requests</h1>
-                    <div className="flex space-x-2">
+            <div className="max-w-[1200px] mx-auto p-4 sm:p-6 space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold text-white tracking-tight">OD Requests</h1>
+                        <p className="text-[#71767b] mt-1">Manage and track on-duty requests.</p>
+                    </div>
+
+                    <div className="flex space-x-3">
                         {user?.role !== 'student' && (
                             <button
                                 onClick={exportReport}
-                                className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                                className="flex items-center gap-2 bg-[#202327] border border-dark-border text-white px-4 py-2 rounded-full font-bold hover:bg-[#2f3336] transition-colors"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                                </svg>
+                                <FiDownload className="w-5 h-5" />
                                 <span>Export Report</span>
                             </button>
                         )}
                         {user?.role === 'student' && (
                             <button
                                 onClick={() => router.push('/od/request')}
-                                className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+                                className="flex items-center gap-2 bg-primary-500 text-white px-4 py-2 rounded-full font-bold hover:bg-primary-600 transition-colors shadow-lg shadow-primary-500/20"
                             >
-                                <FiPlus />
+                                <FiPlus className="w-5 h-5" />
                                 <span>New Request</span>
                             </button>
                         )}
                     </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow overflow-hidden">
+                <div className="bg-[#16181c] rounded-xl border border-dark-border overflow-hidden shadow-sm">
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-50">
+                            <thead className="bg-[#202327]/50 border-b border-dark-border">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-[#71767b] uppercase tracking-wider">
                                         Student
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-[#71767b] uppercase tracking-wider w-1/3">
                                         Reason
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-[#71767b] uppercase tracking-wider">
                                         Dates
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-[#71767b] uppercase tracking-wider">
                                         Status
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-[#71767b] uppercase tracking-wider">
                                         Action
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="divide-y divide-dark-border">
                                 {requests.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                                            No OD requests found
+                                        <td colSpan={5} className="px-6 py-20 text-center text-[#71767b]">
+                                            <div className="flex flex-col items-center">
+                                                <FiClock className="w-10 h-10 mb-2 opacity-50" />
+                                                <p className="font-medium">No OD requests found</p>
+                                            </div>
                                         </td>
                                     </tr>
                                 ) : (
                                     requests.map((request) => (
-                                        <tr key={request.id} className="hover:bg-gray-50">
+                                        <tr key={request.id} className="hover:bg-[#202327] transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-medium text-gray-900">{request.user_name}</div>
-                                                <div className="text-xs text-gray-500">{request.department_name}</div>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center text-white text-xs font-bold border border-dark-border">
+                                                        {request.user_name.charAt(0)}
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-sm font-bold text-white">{request.user_name}</div>
+                                                        <div className="text-xs text-[#71767b]">{request.department_name}</div>
+                                                    </div>
+                                                </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <div className="text-sm text-gray-900 line-clamp-1">{request.reason}</div>
+                                                <div className="text-sm text-[#dbebec] line-clamp-2 max-w-xs">{request.reason}</div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {format(new Date(request.start_date), 'MMM d')} - {format(new Date(request.end_date), 'MMM d, yyyy')}
-                                                <div className="text-xs">{request.total_days} days</div>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-[#71767b]">
+                                                <div className="font-medium text-white">{format(new Date(request.start_date), 'MMM d, yyyy')}</div>
+                                                <div className="text-xs mt-0.5">{request.total_days} days • To {format(new Date(request.end_date), 'MMM d')}</div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 {getStatusBadge(request.status)}
@@ -186,7 +198,7 @@ export default function ODPage() {
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                 <button
                                                     onClick={() => router.push(`/od/${request.id}`)}
-                                                    className="text-primary-600 hover:text-primary-900"
+                                                    className="text-primary-500 hover:text-primary-400 font-bold hover:underline"
                                                 >
                                                     View Details
                                                 </button>

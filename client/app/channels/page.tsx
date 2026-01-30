@@ -127,36 +127,36 @@ export default function ChannelsPage() {
         }
     }
 
-    if (authLoading) return <Layout><div>Loading...</div></Layout>
+    if (authLoading) return <Layout><div className="text-white p-6">Loading...</div></Layout>
 
     return (
         <Layout>
-            <div className="space-y-6">
+            <div className="space-y-6 max-w-[900px] mx-auto p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <h1 className="text-3xl font-bold text-gray-900">Discover Channels</h1>
+                    <h1 className="text-2xl font-bold text-white">Discover Channels</h1>
                     {user?.role === 'admin' && (
                         <button
                             onClick={() => setShowCreateModal(true)}
-                            className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+                            className="flex items-center gap-2 bg-primary-500 text-white px-4 py-2 rounded-full font-bold hover:bg-primary-600 transition-colors shadow-sm"
                         >
-                            <FiPlus /> Create Channel
+                            <FiPlus className="w-5 h-5" /> Create Channel
                         </button>
                     )}
                 </div>
 
                 {/* Search Bar */}
-                <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                    <div className="flex flex-wrap items-center gap-2 p-2 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent">
-                        <FiSearch className="text-gray-400 w-5 h-5 ml-2" />
+                <div className="bg-[#16181c] p-1 rounded-full shadow-sm border border-dark-border focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500 transition-colors">
+                    <div className="flex flex-wrap items-center gap-2 px-3">
+                        <FiSearch className="text-[#71767b] w-5 h-5" />
 
                         {selectedTags.map(tag => (
                             <span
                                 key={tag.id}
-                                className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-white"
+                                className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold text-white"
                                 style={{ backgroundColor: tag.color || '#3B82F6' }}
                             >
                                 {tag.name}
-                                <button onClick={() => removeTag(tag.id)} className="hover:text-gray-200"><FiX /></button>
+                                <button onClick={() => removeTag(tag.id)} className="hover:text-gray-200 ml-1"><FiX /></button>
                             </span>
                         ))}
 
@@ -164,74 +164,67 @@ export default function ChannelsPage() {
                             type="text"
                             value={searchText}
                             onChange={(e) => setSearchText(e.target.value)}
-                            placeholder={selectedTags.length === 0 ? "Search channels by name..." : ""}
-                            className="flex-1 outline-none min-w-[150px] text-sm"
+                            placeholder={selectedTags.length === 0 ? "Search channels..." : ""}
+                            className="flex-1 bg-transparent text-white outline-none min-w-[150px] text-sm py-2 placeholder-[#71767b]"
                         />
-                    </div>
-
-                    {/* Suggested Tags (Public Roles) */}
-                    <div className="mt-3 flex flex-wrap gap-2">
-                        <span className="text-xs text-gray-500 py-1">Try tags:</span>
-                        {roles.filter(r => r.is_public && !selectedTags.find(t => t.id === r.id)).slice(0, 5).map(role => (
-                            <button
-                                key={role.id}
-                                onClick={() => handleTagClick(role)}
-                                className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
-                            >
-                                #{role.name}
-                            </button>
-                        ))}
                     </div>
                 </div>
 
+                {/* Suggested Tags (Public Roles) */}
+                <div className="flex flex-wrap gap-2 items-center">
+                    <span className="text-xs text-[#71767b]">Try tags:</span>
+                    {roles.filter(r => r.is_public && !selectedTags.find(t => t.id === r.id)).slice(0, 5).map(role => (
+                        <button
+                            key={role.id}
+                            onClick={() => handleTagClick(role)}
+                            className="text-xs px-3 py-1 rounded-full bg-[#16181c] border border-dark-border text-primary-500 hover:bg-[#202327] transition-colors font-medium border-primary-500/20"
+                        >
+                            #{role.name}
+                        </button>
+                    ))}
+                </div>
+
+
                 {/* Channels Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 gap-4">
                     {channels.map(channel => (
                         <Link href={`/channels/${channel.id}`} key={channel.id}>
-                            <div className="bg-white rounded-lg shadow hover:shadow-md transition-shadow p-6 border border-gray-100 h-full flex flex-col cursor-pointer">
-                                <div className="flex justify-between items-start mb-2">
-                                    <div className="flex items-center gap-2">
-                                        <div className="p-2 bg-gray-100 rounded-md text-gray-600">
-                                            {channel.is_private ? <FiLock /> : <FiHash />}
-                                        </div>
-                                        <h3 className="text-lg font-bold text-gray-900 group-hover:text-primary-600">{channel.name}</h3>
+                            <div className="bg-transparent hover:bg-[#16181c] transition-colors p-4 border-b border-dark-border cursor-pointer flex justify-between group">
+                                <div className="flex gap-4">
+                                    <div className="w-12 h-12 rounded-xl bg-[#202327] flex items-center justify-center text-[#71767b] group-hover:text-white transition-colors">
+                                        {channel.is_private ? <FiLock className="w-6 h-6" /> : <FiHash className="w-6 h-6" />}
                                     </div>
-                                    {channel.is_private && (
-                                        <span className="px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Private</span>
-                                    )}
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <h3 className="text-base font-bold text-white group-hover:underline">{channel.name}</h3>
+                                            {channel.is_private && (
+                                                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#202327] text-[#71767b] border border-dark-border">PRIVATE</span>
+                                            )}
+                                        </div>
+                                        <p className="text-[#71767b] text-sm mt-1 line-clamp-1">
+                                            {channel.description || 'No description provided.'}
+                                        </p>
+                                        <div className="flex flex-wrap gap-2 mt-2">
+                                            {channel.tags && channel.tags.map(tag => (
+                                                <span
+                                                    key={tag.id}
+                                                    className="text-[10px] px-1.5 py-0.5 rounded font-bold text-white/80"
+                                                    style={{ backgroundColor: tag.color || '#3B82F6' }}
+                                                >
+                                                    {tag.name}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
-
-                                <p className="text-gray-600 text-sm mb-4 line-clamp-2 min-h-[40px]">
-                                    {channel.description || 'No description provided.'}
-                                </p>
-
-                                <div className="flex flex-wrap gap-2 mt-auto mb-3">
-                                    {channel.tags && channel.tags.map(tag => (
-                                        <span
-                                            key={tag.id}
-                                            className="text-xs px-2 py-1 rounded font-medium text-white cursor-pointer opacity-90 hover:opacity-100"
-                                            style={{ backgroundColor: tag.color || '#3B82F6' }}
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                handleTagClick(tag);
-                                            }}
-                                        >
-                                            {tag.name}
-                                        </span>
-                                    ))}
-                                </div>
-
-                                <div className="pt-3 border-t border-gray-50 flex justify-end">
-                                    <span className="text-primary-600 text-sm font-medium flex items-center gap-1">
-                                        View Channel <FiArrowRight />
-                                    </span>
+                                <div className="flex items-center">
+                                    <FiArrowRight className="text-[#71767b] group-hover:text-primary-500 transition-colors" />
                                 </div>
                             </div>
                         </Link>
                     ))}
                     {!loading && channels.length === 0 && (
-                        <div className="col-span-full text-center py-12 text-gray-500">
+                        <div className="col-span-full text-center py-20 text-[#71767b]">
                             No channels found matching your criteria.
                         </div>
                     )}
@@ -242,65 +235,65 @@ export default function ChannelsPage() {
             {showCreateModal && (
                 <div className="fixed inset-0 z-50 overflow-y-auto">
                     <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowCreateModal(false)}></div>
+                        <div className="fixed inset-0 bg-white/5 backdrop-blur-sm transition-opacity" onClick={() => setShowCreateModal(false)}></div>
 
-                        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                            <form onSubmit={handleCreateSubmit} className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                                <div className="mb-4 flex justify-between items-center">
-                                    <h3 className="text-lg font-medium text-gray-900">Create New Channel</h3>
-                                    <button type="button" onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-gray-500"><FiX /></button>
+                        <div className="inline-block align-bottom bg-black border border-dark-border rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                            <form onSubmit={handleCreateSubmit} className=" px-6 pt-6 pb-6">
+                                <div className="mb-6 flex justify-between items-center">
+                                    <h3 className="text-xl font-bold text-white">Create New Channel</h3>
+                                    <button type="button" onClick={() => setShowCreateModal(false)} className="text-[#71767b] hover:text-white rounded-full p-1 hover:bg-[#202327] transition-colors"><FiX className="w-6 h-6" /></button>
                                 </div>
 
-                                <div className="space-y-4">
+                                <div className="space-y-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700">Channel Name</label>
-                                        <div className="mt-1 flex rounded-md shadow-sm">
-                                            <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">#</span>
+                                        <label className="block text-sm font-bold text-[#71767b] mb-2">Channel Name</label>
+                                        <div className="flex rounded-md shadow-sm">
+                                            <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-dark-border bg-[#16181c] text-[#71767b] text-sm">#</span>
                                             <input
                                                 type="text"
                                                 required
                                                 value={newChannelData.name}
                                                 onChange={(e) => setNewChannelData({ ...newChannelData, name: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
-                                                className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border border-gray-300 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                                className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md bg-black border border-dark-border text-white focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                                                 placeholder="channel-name"
                                             />
                                         </div>
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700">Description</label>
+                                        <label className="block text-sm font-bold text-[#71767b] mb-2">Description</label>
                                         <textarea
                                             value={newChannelData.description}
                                             onChange={(e) => setNewChannelData({ ...newChannelData, description: e.target.value })}
                                             rows={3}
-                                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                                            className="block w-full bg-black border border-dark-border rounded-md shadow-sm py-2 px-3 text-white focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                                         />
                                     </div>
 
-                                    <div className="flex items-center">
+                                    <div className="flex items-center bg-[#16181c] p-3 rounded-lg border border-dark-border">
                                         <input
                                             id="is_private"
                                             type="checkbox"
                                             checked={newChannelData.is_private}
                                             onChange={(e) => setNewChannelData({ ...newChannelData, is_private: e.target.checked })}
-                                            className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                                            className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-600 rounded bg-black"
                                         />
-                                        <label htmlFor="is_private" className="ml-2 block text-sm text-gray-900">
+                                        <label htmlFor="is_private" className="ml-3 block text-sm font-medium text-white">
                                             Private Channel (Requires Roles)
                                         </label>
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Required Roles / Tags</label>
-                                        <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 border border-gray-200 rounded-md">
+                                        <label className="block text-sm font-bold text-[#71767b] mb-2">Required Roles / Tags</label>
+                                        <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 border border-dark-border rounded-md bg-[#16181c]">
                                             {roles.map(role => (
                                                 <button
                                                     key={role.id}
                                                     type="button"
                                                     onClick={() => toggleNewChannelTag(role.id)}
-                                                    className={`px-2 py-1 rounded text-xs font-medium border transition-colors ${newChannelData.tags.includes(role.id)
-                                                        ? 'bg-primary-50 border-primary-500 text-primary-700'
-                                                        : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                                                    className={`px-3 py-1 rounded-full text-xs font-bold border transition-colors ${newChannelData.tags.includes(role.id)
+                                                        ? 'bg-primary-500/20 border-primary-500 text-primary-500'
+                                                        : 'bg-black border-dark-border text-[#71767b] hover:bg-[#202327]'
                                                         }`}
                                                 >
                                                     {role.name}
@@ -310,19 +303,19 @@ export default function ChannelsPage() {
                                     </div>
                                 </div>
 
-                                <div className="mt-5 sm:mt-6 flex justify-end gap-3">
+                                <div className="mt-8 flex justify-end gap-3">
                                     <button
                                         type="button"
                                         onClick={() => setShowCreateModal(false)}
-                                        className="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:text-sm"
+                                        className="inline-flex justify-center rounded-full border border-dark-border shadow-sm px-4 py-2 bg-transparent text-sm font-bold text-white hover:bg-[#202327] transition-colors"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         type="submit"
-                                        className="inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:text-sm"
+                                        className="inline-flex justify-center rounded-full border border-transparent shadow-sm px-6 py-2 bg-white text-sm font-bold text-black hover:bg-gray-200 transition-colors"
                                     >
-                                        Create Channel
+                                        Create
                                     </button>
                                 </div>
                             </form>

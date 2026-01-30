@@ -41,86 +41,81 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 px-4 py-8">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8">
+    <div className="min-h-screen flex items-center justify-center bg-black px-4 py-8">
+      <div className="max-w-md w-full bg-[#16181c] rounded-xl border border-dark-border p-8 shadow-2xl">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary-700 mb-2">
-            GCE Smart Notify
+          <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
+            <img src="/g-logo.png" alt="GCE Notify" className="w-full h-full object-cover scale-125" />
+          </div>
+          <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">
+            Sign in to GCE Notify
           </h1>
-          <p className="text-gray-600">Intelligent Digital Notification Framework</p>
+          <p className="text-[#71767b]">Intelligent Digital Notification Framework</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
-            <div className={`px-4 py-3 rounded border ${error.includes('verified') ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
+            <div className={`px-4 py-3 rounded-lg border ${error.includes('verified') ? 'bg-blue-500/10 border-blue-500/20 text-blue-500' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
               {error}
             </div>
           )}
 
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              placeholder="user@example.com"
-            />
-          </div>
+          <div className="space-y-4">
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-3 px-4 py-2.5 bg-white text-black rounded-full hover:bg-gray-200 transition-colors disabled:opacity-50 font-bold"
+            >
+              <FcGoogle size={20} />
+              <span className="font-bold">Sign in with Google</span>
+            </button>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              placeholder="••••••••"
-            />
+            <div className="relative flex items-center py-2">
+              <div className="flex-grow border-t border-dark-border"></div>
+              <span className="flex-shrink-0 mx-4 text-sm text-[#71767b]">or</span>
+              <div className="flex-grow border-t border-dark-border"></div>
+            </div>
+
+            <div>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-4 py-3 bg-black border border-dark-border rounded-lg text-white focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors placeholder-[#71767b]"
+                placeholder="Email address"
+              />
+            </div>
+
+            <div>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full px-4 py-3 bg-black border border-dark-border rounded-lg text-white focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors placeholder-[#71767b]"
+                placeholder="Password"
+              />
+            </div>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+            className="w-full bg-primary-500 text-white py-2.5 px-4 rounded-full hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold shadow-lg shadow-primary-500/20"
           >
-            {loading ? 'Processing...' : 'Login'}
+            {loading ? 'Processing...' : 'Next'}
           </button>
         </form>
 
-        <div className="mt-4">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500 uppercase tracking-wider text-xs">Or continue with</span>
-            </div>
-          </div>
-
-          <button
-            onClick={handleGoogleLogin}
-            disabled={loading}
-            className="mt-4 w-full flex items-center justify-center gap-3 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-          >
-            <FcGoogle size={24} />
-            <span className="text-gray-700 font-medium">Google Account</span>
-          </button>
-        </div>
-
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600">
+        <div className="mt-8 text-center">
+          <p className="text-sm text-[#71767b]">
             Don't have an account?{' '}
-            <Link href="/register" className="text-primary-600 hover:text-primary-700 font-medium">
-              Register
+            <Link href="/register" className="text-primary-500 hover:text-primary-400 font-medium hover:underline">
+              Sign up
             </Link>
           </p>
         </div>

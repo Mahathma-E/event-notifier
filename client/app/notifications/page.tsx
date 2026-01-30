@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import Layout from '@/components/Layout'
 import axios from 'axios'
 import Cookies from 'js-cookie'
-import { FiSearch, FiFilter, FiX } from 'react-icons/fi'
+import { FiSearch, FiFilter, FiX, FiBell, FiCheckCircle, FiAlertCircle, FiInfo, FiTrendingUp } from 'react-icons/fi'
 import { format } from 'date-fns'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
@@ -28,15 +28,7 @@ interface Notification {
   attachment_type?: string
 }
 
-interface ChannelPost {
-  id: number
-  title: string
-  content: string
-  author_name: string
-  created_at: string
-  channel_name: string
-  channel_id: number
-}
+
 
 export default function NotificationsPage() {
   const { user, loading: authLoading } = useAuth()
@@ -52,9 +44,7 @@ export default function NotificationsPage() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
 
-  // Channel Notifications
-  const [activeTab, setActiveTab] = useState<'global' | 'channels'>('global')
-  const [channelUpdates, setChannelUpdates] = useState<ChannelPost[]>([])
+
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -64,13 +54,9 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     if (user) {
-      if (activeTab === 'global') {
-        fetchNotifications()
-      } else {
-        fetchChannelUpdates()
-      }
+      fetchNotifications()
     }
-  }, [user, page, search, filters, activeTab])
+  }, [user, page, search, filters])
 
   const fetchNotifications = async () => {
     try {
@@ -99,66 +85,20 @@ export default function NotificationsPage() {
     }
   }
 
-  const fetchChannelUpdates = async () => {
-    try {
-      setLoading(true)
-      const token = Cookies.get('token')
-      if (token) axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
-      // We need an endpoint for "My Channel Feed". 
-      // For now, let's fetch my channels, then fetch posts for each.
-      // This is inefficient but works for MVP without new backend endpoint.
-      // Better: Add GET /api/users/channel-feed.
-      // Let's implement the inefficient client-side aggregation for now to save backend turn.
-      // Actually, I can use the existing /channels endpoint to get my channels?
-
-      // 1. Get my channels (or all and filter)
-      const channelsRes = await axios.get(`${API_URL}/channels`)
-      // We need to know which ones I am a member of.
-      // The backend list doesn't explicitly return "is_member".
-      // I will loop through channels and check membership? Too many requests.
-      // Optimization: Assume I can see all public channels? No, "Only joined members".
-      // The backend `GET /channels` filters visibility but not "membership".
-      // I'll add a new endpoint or just use what I have.
-
-      // Let's try to hit a new endpoint I'll assume I can create or use logic.
-      // Actually, I'll create a quick helper in backend? No, stick to frontend for this step.
-      // Let's filter channels I've joined.
-
-      // Wait, I can't easily know which ones I joined without querying each.
-      // STARTUPS HACK: Just fetch posts from ALL visible channels and filter by "is member" if possible?
-      // No. 
-
-      // I will assume I need to ADD a backend endpoint for this to be usable.
-      // But I am in frontend file edit.
-      // I'll skip fetching for a second and assume I'll add the endpoint next step.
-      // Let's just mock it or assume `GET /api/channels/feed` exists.
-      // I will add `GET /api/user/feed` to users.js or channels.js next.
-
-      const feedRes = await axios.get(`${API_URL}/users/channel-feed`)
-      setChannelUpdates(feedRes.data)
-
-    } catch (error) {
-      console.error('Failed to fetch channel updates', error)
-      // Fallback or empty
-      setChannelUpdates([])
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'Emergency':
-        return 'bg-red-100 text-red-800 border-red-200'
+        return 'bg-red-500/10 text-red-500 border-red-500/20'
       case 'High':
-        return 'bg-orange-100 text-orange-800 border-orange-200'
+        return 'bg-orange-500/10 text-orange-500 border-orange-500/20'
       case 'Normal':
-        return 'bg-blue-100 text-blue-800 border-blue-200'
+        return 'bg-blue-500/10 text-blue-500 border-blue-500/20'
       case 'Info':
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+        return 'bg-gray-500/10 text-gray-400 border-gray-500/20'
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+        return 'bg-gray-500/10 text-gray-400 border-gray-500/20'
     }
   }
 
@@ -167,11 +107,22 @@ export default function NotificationsPage() {
     setSearch('')
   }
 
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'Emergency':
+        return <FiAlertCircle className="w-5 h-5 text-red-500" />
+      case 'Exam':
+        return <FiCheckCircle className="w-5 h-5 text-green-500" />
+      default:
+        return <FiInfo className="w-5 h-5 text-blue-500" />
+    }
+  }
+
   if (authLoading || (loading && notifications.length === 0)) {
     return (
       <Layout>
         <div className="flex items-center justify-center min-h-[40vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
         </div>
       </Layout>
     )
@@ -179,237 +130,218 @@ export default function NotificationsPage() {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="max-w-[1200px] mx-auto p-4 sm:p-6 space-y-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4 sm:mb-0">Notifications</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <h1 className="text-3xl font-bold text-white tracking-tight">Notifications</h1>
           {(user?.role === 'admin' || user?.role === 'faculty') && (
             <button
               onClick={() => router.push('/notifications/create')}
-              className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+              className="bg-primary-500 text-white px-6 py-2.5 rounded-full font-bold hover:bg-primary-600 transition-colors shadow-lg shadow-primary-500/20"
             >
               Create Notification
             </button>
           )}
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex border-b border-gray-200">
-          <button
-            className={`py-2 px-4 font-medium text-sm focus:outline-none ${activeTab === 'global' ? 'border-b-2 border-primary-600 text-primary-600' : 'text-gray-500 hover:text-gray-700'}`}
-            onClick={() => setActiveTab('global')}
-          >
-            Campus Updates
-          </button>
-          <button
-            className={`py-2 px-4 font-medium text-sm focus:outline-none ${activeTab === 'channels' ? 'border-b-2 border-primary-600 text-primary-600' : 'text-gray-500 hover:text-gray-700'}`}
-            onClick={() => setActiveTab('channels')}
-          >
-            Channel Activity
-          </button>
-        </div>
-
-        {/* Search and Filters (Only for Global) */}
-        {activeTab === 'global' && (
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1 relative">
-                <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search notifications..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                <FiFilter />
-                <span>Filters</span>
-              </button>
+        {/* Search and Filters */}
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1 relative group">
+              <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#71767b] group-focus-within:text-primary-500 transition-colors" />
+              <input
+                type="text"
+                placeholder="Search notifications..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 bg-[#16181c] border border-dark-border rounded-full text-white placeholder-[#71767b] focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-all"
+              />
             </div>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center justify-center space-x-2 px-6 py-3 border rounded-full font-bold transition-all ${showFilters ? 'bg-primary-500/10 border-primary-500 text-primary-500' : 'bg-transparent border-dark-border text-[#71767b] hover:bg-[#16181c] hover:text-white'}`}
+            >
+              <FiFilter />
+              <span>Filters</span>
+            </button>
+          </div>
 
-            {showFilters && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Category
-                    </label>
-                    <select
-                      value={filters.category}
-                      onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-                    >
-                      <option value="">All Categories</option>
-                      <option value="Academic">Academic</option>
-                      <option value="Exam">Exam</option>
-                      <option value="Placement">Placement</option>
-                      <option value="Events">Events</option>
-                      <option value="Administrative">Administrative</option>
-                      <option value="Emergency">Emergency</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Priority
-                    </label>
-                    <select
-                      value={filters.priority}
-                      onChange={(e) => setFilters({ ...filters, priority: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-                    >
-                      <option value="">All Priorities</option>
-                      <option value="Emergency">Emergency</option>
-                      <option value="High">High</option>
-                      <option value="Normal">Normal</option>
-                      <option value="Info">Info</option>
-                    </select>
-                  </div>
+          {showFilters && (
+            <div className="bg-[#16181c] rounded-2xl p-6 border border-dark-border animate-fade-in-down">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-bold text-[#71767b] mb-2 uppercase tracking-wide">
+                    Category
+                  </label>
+                  <select
+                    value={filters.category}
+                    onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-black border border-dark-border rounded-lg text-white focus:outline-none focus:border-primary-500 transition-colors"
+                  >
+                    <option value="">All Categories</option>
+                    <option value="Academic">Academic</option>
+                    <option value="Exam">Exam</option>
+                    <option value="Placement">Placement</option>
+                    <option value="Events">Events</option>
+                    <option value="Administrative">Administrative</option>
+                    <option value="Emergency">Emergency</option>
+                  </select>
                 </div>
-                {(filters.category || filters.priority || search) && (
+                <div>
+                  <label className="block text-sm font-bold text-[#71767b] mb-2 uppercase tracking-wide">
+                    Priority
+                  </label>
+                  <select
+                    value={filters.priority}
+                    onChange={(e) => setFilters({ ...filters, priority: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-black border border-dark-border rounded-lg text-white focus:outline-none focus:border-primary-500 transition-colors"
+                  >
+                    <option value="">All Priorities</option>
+                    <option value="Emergency">Emergency</option>
+                    <option value="High">High</option>
+                    <option value="Normal">Normal</option>
+                    <option value="Info">Info</option>
+                  </select>
+                </div>
+              </div>
+              {(filters.category || filters.priority || search) && (
+                <div className="flex justify-end mt-4">
                   <button
                     onClick={clearFilters}
-                    className="mt-4 flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-900"
+                    className="flex items-center space-x-2 text-sm font-bold text-red-500 hover:text-red-400 transition-colors"
                   >
                     <FiX />
                     <span>Clear filters</span>
                   </button>
-                )}
-              </div>
-            )}
-          </div>
-        )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Notifications List */}
-        {activeTab === 'global' ? (
-          <div className="space-y-4">
-            {notifications.length === 0 ? (
-              <div className="bg-white rounded-lg shadow p-12 text-center">
-                <p className="text-gray-500">No notifications found</p>
+        <div className="space-y-4">
+          {notifications.length === 0 ? (
+            <div className="text-center py-20">
+              <div className="w-20 h-20 bg-[#16181c] rounded-full flex items-center justify-center mx-auto mb-6">
+                <FiBell className="w-10 h-10 text-[#71767b]" />
               </div>
-            ) : (
-              notifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  className={`bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow cursor-pointer ${notification.is_pinned ? 'border-l-4 border-yellow-400 bg-yellow-50' : ''
-                    } ${!notification.is_read ? 'border-l-4 border-blue-500' : ''}`}
-                  onClick={() => router.push(`/notifications/${notification.id}`)}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
-                        {notification.is_pinned && (
-                          <span className="text-xs font-semibold text-yellow-600 bg-yellow-100 px-2 py-1 rounded">
-                            PINNED
-                          </span>
-                        )}
-                        <span
-                          className={`text-xs font-semibold px-2 py-1 rounded border ${getPriorityColor(
-                            notification.priority
-                          )}`}
-                        >
-                          {notification.priority}
+              <h3 className="text-xl font-bold text-white mb-2">No notifications found</h3>
+              <p className="text-[#71767b]">Try adjusting your filters or search terms.</p>
+            </div>
+          ) : (
+            notifications.map((notification) => (
+              <div
+                key={notification.id}
+                className={`bg-[#16181c] rounded-xl border border-dark-border p-6 hover:bg-[#202327] transition-all cursor-pointer group relative overflow-hidden ${!notification.is_read ? 'bg-[#1a1d21]' : ''}`}
+                onClick={() => router.push(`/notifications/${notification.id}`)}
+              >
+                {/* Unread Indicator */}
+                {!notification.is_read && (
+                  <div className="absolute top-6 right-6 w-2.5 h-2.5 bg-primary-500 rounded-full shadow-[0_0_8px_rgba(29,155,240,0.5)]"></div>
+                )}
+
+                <div className="flex items-start gap-4 pr-6">
+                  <div className="flex-shrink-0 pt-1">
+                    <div className="w-10 h-10 rounded-full bg-[#2f3336]/50 flex items-center justify-center border border-dark-border">
+                      {getCategoryIcon(notification.category)}
+                    </div>
+                  </div>
+
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                      {notification.is_pinned && (
+                        <span className="text-[10px] font-bold text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded border border-yellow-500/20 uppercase tracking-wide">
+                          PINNED
                         </span>
-                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                          {notification.category}
-                        </span>
+                      )}
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wide ${getPriorityColor(
+                          notification.priority
+                        )}`}
+                      >
+                        {notification.priority}
+                      </span>
+                      <span className="text-[10px] font-bold text-[#71767b] bg-[#2f3336] px-2 py-0.5 rounded border border-dark-border uppercase tracking-wide">
+                        {notification.category}
+                      </span>
+                    </div>
+
+                    <h3 className="text-xl font-bold text-white mb-2 group-hover:underline decoration-primary-500 underline-offset-4">
+                      {notification.title}
+                    </h3>
+
+                    <p className="text-[#dbebec] mb-4 line-clamp-2 md:line-clamp-3 leading-relaxed text-[15px] font-light">
+                      {notification.content}
+                    </p>
+
+                    <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-xs font-medium text-[#71767b]">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white text-[10px] font-bold">
+                          {notification.created_by_name.charAt(0)}
+                        </div>
+                        <span className="text-white">{notification.created_by_name}</span>
                       </div>
-                      <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                        {notification.title}
-                      </h3>
-                      <p className="text-gray-600 mb-4 line-clamp-3">{notification.content}</p>
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-                        <span>By {notification.created_by_name}</span>
-                        {notification.department_name && (
-                          <span>• {notification.department_name}</span>
-                        )}
-                        <span>• {format(new Date(notification.created_at), 'MMM d, yyyy h:mm a')}</span>
-                        {notification.read_count > 0 && (
-                          <span>• {notification.read_count} read</span>
-                        )}
-                        {notification.acknowledged_count > 0 && (
-                          <span>• {notification.acknowledged_count} acknowledged</span>
-                        )}
-                      </div>
-                      {notification.attachment_url && (
+                      {notification.department_name && (
+                        <span>• {notification.department_name}</span>
+                      )}
+                      <span>• {format(new Date(notification.created_at), 'MMM d, yyyy h:mm a')}</span>
+                      {(notification.read_count > 0 || notification.acknowledged_count > 0) && (
+                        <span className="hidden sm:inline">•</span>
+                      )}
+                      {notification.read_count > 0 && (
+                        <span className="bg-[#2f3336]/40 px-1.5 py-0.5 rounded">{notification.read_count} read</span>
+                      )}
+                      {notification.acknowledged_count > 0 && (
+                        <span className="text-green-500 bg-green-500/10 px-1.5 py-0.5 rounded">{notification.acknowledged_count} acknowledged</span>
+                      )}
+                    </div>
+
+                    {notification.attachment_url && (
+                      <div className="mt-4">
                         <a
                           href={`${API_URL.replace('/api', '')}${notification.attachment_url}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="mt-3 inline-flex items-center text-sm text-primary-600 hover:text-primary-700 font-medium"
+                          className="inline-flex items-center text-xs text-primary-500 hover:text-primary-400 font-bold bg-primary-500/10 px-3 py-1.5 rounded-full border border-primary-500/20 transition-colors"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-3 h-3 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                           </svg>
                           View Attachment
                         </a>
-                      )}
-                    </div>
-                    {!notification.is_read && (
-                      <div className="ml-4">
-                        <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
                       </div>
                     )}
                   </div>
                 </div>
-              ))
-            )}
+              </div>
+            ))
+          )}
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex justify-center items-center space-x-2 pt-4 border-t border-gray-100">
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                >
-                  Previous
-                </button>
-                <span className="px-4 py-2 text-sm text-gray-600">
-                  Page {page} of {totalPages}
-                </span>
-                <button
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                >
-                  Next
-                </button>
-              </div>
-            )}
-          </div>
-        ) : (
-          channelUpdates.map(post => (
-            <div
-              key={post.id}
-              className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow cursor-pointer border-l-4 border-indigo-500"
-              onClick={() => router.push(`/channels/${post.channel_id}`)}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <span className="text-xs font-semibold px-2 py-1 rounded bg-indigo-100 text-indigo-800">
-                      #{post.channel_name}
-                    </span>
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    {post.title}
-                  </h3>
-                  <p className="text-gray-600 mb-4 line-clamp-3">{post.content}</p>
-                  <div className="flex items-center gap-4 text-sm text-gray-500">
-                    <span>By {post.author_name}</span>
-                    <span>• {format(new Date(post.created_at), 'MMM d, yyyy h:mm a')}</span>
-                  </div>
-                </div>
-              </div>
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center space-x-4 pt-8">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-6 py-2 rounded-full border border-dark-border font-bold text-white hover:bg-[#202327] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                Previous
+              </button>
+              <span className="text-sm font-bold text-[#71767b]">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="px-6 py-2 rounded-full border border-dark-border font-bold text-white hover:bg-[#202327] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                Next
+              </button>
             </div>
-          ))
-        )}
+          )}
+        </div>
       </div>
 
     </Layout >

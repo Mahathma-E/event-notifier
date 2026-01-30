@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import Layout from '@/components/Layout'
 import axios from 'axios'
 import Cookies from 'js-cookie'
-import { FiArrowLeft } from 'react-icons/fi'
+import { FiArrowLeft, FiImage, FiCalendar, FiTarget } from 'react-icons/fi'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
 
@@ -144,22 +144,22 @@ export default function CreateNotificationPage() {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto space-y-6">
-        <button
-          onClick={() => router.back()}
-          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
-        >
-          <FiArrowLeft />
-          <span>Back</span>
-        </button>
+      <div className="max-w-[800px] mx-auto space-y-6 p-4 sm:p-6">
+        <div className="flex items-center gap-4 mb-6">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-[#202327] text-white transition-colors"
+          >
+            <FiArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Create Notification</h1>
+        </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">Create Notification</h1>
-
+        <div className="bg-[#16181c] rounded-xl border border-dark-border p-6 sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Title *
+              <label className="block text-sm font-bold text-[#71767b] mb-2 uppercase tracking-wide">
+                Title <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -167,37 +167,37 @@ export default function CreateNotificationPage() {
                 value={formData.title}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-3 bg-black border border-dark-border rounded-lg text-white placeholder-[#71767b] focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors"
                 placeholder="Enter notification title"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Content *
+              <label className="block text-sm font-bold text-[#71767b] mb-2 uppercase tracking-wide">
+                Content <span className="text-red-500">*</span>
               </label>
               <textarea
                 name="content"
                 value={formData.content}
                 onChange={handleChange}
                 required
-                rows={8}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                rows={6}
+                className="w-full px-4 py-3 bg-black border border-dark-border rounded-lg text-white placeholder-[#71767b] focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors"
                 placeholder="Enter notification content"
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category *
+                <label className="block text-sm font-bold text-[#71767b] mb-2 uppercase tracking-wide">
+                  Category <span className="text-red-500">*</span>
                 </label>
                 <select
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-4 py-3 bg-black border border-dark-border rounded-lg text-white focus:outline-none focus:border-primary-500 transition-colors"
                 >
                   <option value="Academic">Academic</option>
                   <option value="Exam">Exam</option>
@@ -209,15 +209,15 @@ export default function CreateNotificationPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Priority *
+                <label className="block text-sm font-bold text-[#71767b] mb-2 uppercase tracking-wide">
+                  Priority <span className="text-red-500">*</span>
                 </label>
                 <select
                   name="priority"
                   value={formData.priority}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-4 py-3 bg-black border border-dark-border rounded-lg text-white focus:outline-none focus:border-primary-500 transition-colors"
                 >
                   <option value="Emergency">Emergency</option>
                   <option value="High">High</option>
@@ -227,16 +227,16 @@ export default function CreateNotificationPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-bold text-[#71767b] mb-2 uppercase tracking-wide">
                   Department
                 </label>
                 <select
                   name="department_id"
                   value={formData.department_id}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-4 py-3 bg-black border border-dark-border rounded-lg text-white focus:outline-none focus:border-primary-500 transition-colors"
                 >
                   <option value="">All Departments</option>
                   {departments.map((dept) => (
@@ -248,14 +248,14 @@ export default function CreateNotificationPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-bold text-[#71767b] mb-2 uppercase tracking-wide">
                   Year
                 </label>
                 <select
                   name="year"
                   value={formData.year}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-4 py-3 bg-black border border-dark-border rounded-lg text-white focus:outline-none focus:border-primary-500 transition-colors"
                 >
                   <option value="">All Years</option>
                   <option value="1">1st Year</option>
@@ -267,85 +267,86 @@ export default function CreateNotificationPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Target Roles (Optional)
+              <label className="block text-sm font-bold text-[#71767b] mb-2 uppercase tracking-wide flex items-center gap-2">
+                <FiTarget /> Target Roles (Optional)
               </label>
-              <div className="flex flex-wrap gap-2 p-3 border border-gray-300 rounded-lg max-h-40 overflow-y-auto">
+              <div className="flex flex-wrap gap-2 p-4 bg-black border border-dark-border rounded-lg max-h-40 overflow-y-auto">
                 {roles.map(role => (
                   <button
                     key={role.id}
                     type="button"
                     onClick={() => toggleRole(role.id)}
-                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors border ${formData.roles.includes(role.id)
-                      ? 'bg-primary-100 text-primary-800 border-primary-500'
-                      : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors border ${formData.roles.includes(role.id)
+                      ? 'bg-primary-500/20 text-primary-500 border-primary-500'
+                      : 'bg-[#16181c] text-[#71767b] border-dark-border hover:bg-[#202327] hover:text-white'
                       }`}
                   >
                     {role.name}
                   </button>
                 ))}
-                {roles.length === 0 && <span className="text-sm text-gray-500">No roles available.</span>}
+                {roles.length === 0 && <span className="text-sm text-[#71767b]">No roles available.</span>}
               </div>
-              <p className="text-xs text-gray-500 mt-1">Select roles to target specific groups (e.g. Placement, Sports).</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Schedule (Optional)
+              <label className="block text-sm font-bold text-[#71767b] mb-2 uppercase tracking-wide flex items-center gap-2">
+                <FiCalendar /> Schedule (Optional)
               </label>
               <input
                 type="datetime-local"
                 name="scheduled_at"
                 value={formData.scheduled_at}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                className="w-full px-4 py-3 bg-black border border-dark-border rounded-lg text-white focus:outline-none focus:border-primary-500 transition-colors [color-scheme:dark]"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Attachment (Optional)
+              <label className="block text-sm font-bold text-[#71767b] mb-2 uppercase tracking-wide flex items-center gap-2">
+                <FiImage /> Attachment (Optional)
               </label>
-              <input
-                type="file"
-                name="attachment"
-                onChange={handleChange}
-                accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-              />
-              <p className="text-xs text-gray-500 mt-1">
+              <div className="relative">
+                <input
+                  type="file"
+                  name="attachment"
+                  onChange={handleChange}
+                  accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
+                  className="w-full px-4 py-3 bg-black border border-dark-border rounded-lg text-white focus:outline-none focus:border-primary-500 transition-colors file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#202327] file:text-white hover:file:bg-[#2f3336]"
+                />
+              </div>
+              <p className="text-xs text-[#71767b] mt-2">
                 Accepted formats: PDF, Word, Excel, Images (Max 10MB)
               </p>
             </div>
 
-            <div className="flex items-center">
+            <div className="flex items-center bg-[#202327]/50 p-4 rounded-lg border border-dark-border">
               <input
                 type="checkbox"
                 name="is_pinned"
                 id="is_pinned"
                 checked={formData.is_pinned}
                 onChange={handleChange}
-                className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                className="w-4 h-4 text-primary-500 bg-black border-dark-border rounded focus:ring-primary-500 focus:ring-offset-black"
               />
-              <label htmlFor="is_pinned" className="ml-2 text-sm text-gray-700">
+              <label htmlFor="is_pinned" className="ml-3 text-sm font-medium text-white cursor-pointer select-none">
                 Pin this notification to the top
               </label>
             </div>
 
-            <div className="flex items-center justify-end space-x-4 pt-4 border-t border-gray-200">
+            <div className="flex items-center justify-end space-x-4 pt-6 border-t border-dark-border">
               <button
                 type="button"
                 onClick={() => router.back()}
-                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-6 py-2.5 rounded-full font-bold text-white hover:bg-[#202327] transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-8 py-2.5 bg-white text-black rounded-full font-bold hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {loading ? 'Creating...' : 'Create Notification'}
+                {loading ? 'Creating...' : 'Post'}
               </button>
             </div>
           </form>

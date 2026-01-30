@@ -104,29 +104,32 @@ function RegisterForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 px-4 py-8">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8">
+    <div className="min-h-screen flex items-center justify-center bg-black px-4 py-8">
+      <div className="max-w-md w-full bg-[#16181c] rounded-xl border border-dark-border p-8 shadow-2xl">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary-700 mb-2">
+          <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
+            <img src="/g-logo.png" alt="GCE Notify" className="w-full h-full object-cover scale-125" />
+          </div>
+          <h1 className="text-2xl font-bold text-white mb-2 tracking-tight">
             {isCompletingProfile ? 'Complete Your Profile' : 'Create Account'}
           </h1>
-          <p className="text-gray-600">
-            {isCompletingProfile ? 'Tell us a bit more about you' : 'Join GCE Smart Notify'}
+          <p className="text-[#71767b] text-sm">
+            {isCompletingProfile ? 'Tell us a bit more about you' : 'Join GCE Smart Notify today'}
           </p>
         </div>
 
         {success ? (
-          <div className="text-center p-6 bg-green-50 border border-green-200 rounded-lg">
-            <div className="text-green-600 mb-4">
+          <div className="text-center p-6 bg-green-500/10 border border-green-500/20 rounded-lg">
+            <div className="text-green-500 mb-4">
               <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-green-800 mb-2">Check Your Email</h2>
-            <p className="text-green-700 mb-6">{success}</p>
+            <h2 className="text-xl font-bold text-white mb-2">Check Your Email</h2>
+            <p className="text-[#71767b] mb-6">{success}</p>
             <Link
               href="/login"
-              className="inline-block bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
+              className="inline-block bg-primary-500 text-white px-6 py-2 rounded-full font-bold hover:bg-primary-600 transition-colors"
             >
               Go to Login
             </Link>
@@ -134,29 +137,24 @@ function RegisterForm() {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+              <div className="bg-red-500/10 border border-red-500/20 text-red-500 px-4 py-3 rounded-lg text-sm">
                 {error}
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Name
-              </label>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-3 bg-black border border-dark-border rounded-lg text-white focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors placeholder-[#71767b]"
+                placeholder="Full Name"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email
-              </label>
               <input
                 type="email"
                 name="email"
@@ -164,15 +162,13 @@ function RegisterForm() {
                 onChange={handleChange}
                 required
                 disabled={isCompletingProfile}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-100 italic"
+                className="w-full px-4 py-3 bg-black border border-dark-border rounded-lg text-white focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors placeholder-[#71767b] disabled:opacity-50 disabled:cursor-not-allowed"
+                placeholder="Email Address"
               />
             </div>
 
             {!isCompletingProfile && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Password
-                </label>
                 <input
                   type="password"
                   name="password"
@@ -180,13 +176,14 @@ function RegisterForm() {
                   onChange={handleChange}
                   required
                   minLength={6}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-black border border-dark-border rounded-lg text-white focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors placeholder-[#71767b]"
+                  placeholder="Password"
                 />
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs font-bold text-[#71767b] mb-2 uppercase tracking-wide">
                 Role
               </label>
               <select
@@ -194,7 +191,7 @@ function RegisterForm() {
                 value={formData.role}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-3 bg-black border border-dark-border rounded-lg text-white focus:outline-none focus:border-primary-500 transition-colors"
               >
                 <option value="student">Student</option>
                 <option value="faculty">Faculty</option>
@@ -204,14 +201,14 @@ function RegisterForm() {
             {formData.role !== 'admin' && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs font-bold text-[#71767b] mb-2 uppercase tracking-wide">
                     Department
                   </label>
                   <select
                     name="department_id"
                     value={formData.department_id}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-4 py-3 bg-black border border-dark-border rounded-lg text-white focus:outline-none focus:border-primary-500 transition-colors"
                   >
                     <option value="">Select Department</option>
                     {departments.map((dept) => (
@@ -224,14 +221,14 @@ function RegisterForm() {
 
                 {formData.role === 'student' && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs font-bold text-[#71767b] mb-2 uppercase tracking-wide">
                       Year
                     </label>
                     <select
                       name="year"
                       value={formData.year}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full px-4 py-3 bg-black border border-dark-border rounded-lg text-white focus:outline-none focus:border-primary-500 transition-colors"
                     >
                       <option value="">Select Year</option>
                       <option value="1">1st Year</option>
@@ -245,33 +242,29 @@ function RegisterForm() {
                 {formData.role === 'faculty' && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Designation (Optional)
+                      <label className="block text-xs font-bold text-[#71767b] mb-2 uppercase tracking-wide">
+                        Designation <span className="text-[#536471] font-normal lowercase">(optional)</span>
                       </label>
                       <select
                         name="designation"
                         value={formData.designation}
                         onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="w-full px-4 py-3 bg-black border border-dark-border rounded-lg text-white focus:outline-none focus:border-primary-500 transition-colors"
                       >
                         <option value="">Teaching Staff</option>
                         <option value="coordinator">Coordinator</option>
                         <option value="hod">HOD</option>
                       </select>
-                      <p className="text-xs text-gray-500 mt-1">Select only if you are a Coordinator or HOD.</p>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Subjects
-                      </label>
                       <input
                         type="text"
                         name="subjects"
                         value={formData.subjects}
                         onChange={handleChange}
-                        placeholder="e.g. Data Structures, Algorithms"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        placeholder="Subjects (e.g. Data Structures)"
+                        className="w-full px-4 py-3 bg-black border border-dark-border rounded-lg text-white focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors placeholder-[#71767b]"
                       />
                     </div>
                   </>
@@ -282,20 +275,20 @@ function RegisterForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium mt-4"
+              className="w-full bg-white text-black py-2.5 px-4 rounded-full hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold mt-6"
             >
-              {loading ? 'Processing...' : (isCompletingProfile ? 'Save Profile' : 'Register')}
+              {loading ? 'Processing...' : (isCompletingProfile ? 'Save Profile' : 'Create Account')}
             </button>
           </form>
         )
         }
 
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600">
+        <div className="mt-8 text-center">
+          <p className="text-sm text-[#71767b]">
             {isCompletingProfile ? 'Want to sign out?' : 'Already have an account?'}
             {' '}
-            <Link href="/login" className="text-primary-600 hover:text-primary-700 font-medium">
-              {isCompletingProfile ? 'Back to Login' : 'Login'}
+            <Link href="/login" className="text-primary-500 hover:text-primary-400 font-medium hover:underline">
+              {isCompletingProfile ? 'Back to Login' : 'Sign in'}
             </Link>
           </p>
         </div>
@@ -307,8 +300,8 @@ function RegisterForm() {
 export default function RegisterPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
       </div>
     }>
       <RegisterForm />

@@ -61,7 +61,7 @@ export default function ProfilePage() {
         return (
             <Layout>
                 <div className="flex items-center justify-center min-h-[40vh]">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
                 </div>
             </Layout>
         )
@@ -71,39 +71,43 @@ export default function ProfilePage() {
 
     return (
         <Layout>
-            <div className="max-w-2xl mx-auto space-y-6">
-                <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
+            <div className="max-w-[800px] mx-auto space-y-8 p-4 sm:p-6">
+                <h1 className="text-3xl font-bold text-white tracking-tight">My Profile</h1>
 
                 {message && (
-                    <div className={`p-4 rounded-lg ${message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    <div className={`p-4 rounded-xl border ${message.type === 'success'
+                        ? 'bg-green-500/10 border-green-500/20 text-green-500'
+                        : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
                         {message.text}
                     </div>
                 )}
 
-                <div className="bg-white rounded-lg shadow overflow-hidden">
-                    <div className="p-6 border-b border-gray-200 bg-gray-50 flex items-center space-x-4">
-                        <div className="h-16 w-16 bg-primary-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                <div className="bg-[#16181c] rounded-xl border border-dark-border overflow-hidden">
+                    <div className="p-8 border-b border-dark-border bg-[#1d1f23]/50 flex items-center space-x-6">
+                        <div className="h-24 w-24 bg-gradient-to-br from-primary-500 to-primary-700 rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-lg shadow-primary-500/20 border-4 border-[#16181c]">
                             {user.name?.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                            <h2 className="text-xl font-semibold text-gray-900">{user.name}</h2>
-                            <p className="text-sm text-gray-500 capitalize">{user.role}</p>
+                            <h2 className="text-2xl font-bold text-white">{user.name}</h2>
+                            <span className="inline-block mt-1 px-3 py-1 bg-[#2f3336] rounded-full text-sm font-medium text-[#71767b] capitalize border border-dark-border">
+                                {user.role}
+                            </span>
                         </div>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                    <form onSubmit={handleSubmit} className="p-8 space-y-8">
                         {/* Name (Editable) */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-bold text-[#71767b] mb-2 uppercase tracking-wide">
                                 <div className="flex items-center space-x-2">
-                                    <FiUser className="text-gray-400" />
+                                    <FiUser />
                                     <span>Full Name</span>
                                 </div>
                             </label>
                             <input
                                 type="text"
                                 required
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                                className="w-full px-4 py-3 bg-black border border-dark-border rounded-lg text-white focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors"
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             />
@@ -111,39 +115,39 @@ export default function ProfilePage() {
 
                         {/* Email (Read-only) */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-bold text-[#71767b] mb-2 uppercase tracking-wide">
                                 <div className="flex items-center space-x-2">
-                                    <FiMail className="text-gray-400" />
+                                    <FiMail />
                                     <span>Email Address</span>
                                 </div>
                             </label>
                             <input
                                 type="email"
                                 disabled
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
+                                className="w-full px-4 py-3 bg-[#202327] border border-dark-border rounded-lg text-[#71767b] cursor-not-allowed"
                                 value={user.email}
                             />
-                            <p className="mt-1 text-xs text-gray-400">Email cannot be changed.</p>
+                            <p className="mt-2 text-xs text-[#71767b]">Email cannot be changed.</p>
                         </div>
 
                         {/* Department & Role Info (Read-only) */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-bold text-[#71767b] mb-2 uppercase tracking-wide">
                                     <div className="flex items-center space-x-2">
-                                        <FiBriefcase className="text-gray-400" />
+                                        <FiBriefcase />
                                         <span>Department</span>
                                     </div>
                                 </label>
-                                <div className="px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700">
+                                <div className="px-4 py-3 border border-dark-border rounded-lg bg-[#202327] text-white">
                                     {user.department_name || 'N/A'}
                                 </div>
                             </div>
 
                             {user.role === 'student' && user.year && (
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Year</label>
-                                    <div className="px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700">
+                                    <label className="block text-sm font-bold text-[#71767b] mb-2 uppercase tracking-wide">Year</label>
+                                    <div className="px-4 py-3 border border-dark-border rounded-lg bg-[#202327] text-white">
                                         Year {user.year}
                                     </div>
                                 </div>
@@ -151,8 +155,8 @@ export default function ProfilePage() {
 
                             {user.role === 'faculty' && user.designation && (
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Designation</label>
-                                    <div className="px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 capitalize">
+                                    <label className="block text-sm font-bold text-[#71767b] mb-2 uppercase tracking-wide">Designation</label>
+                                    <div className="px-4 py-3 border border-dark-border rounded-lg bg-[#202327] text-white capitalize">
                                         {user.designation}
                                     </div>
                                 </div>
@@ -162,30 +166,36 @@ export default function ProfilePage() {
                         {/* Subjects (Editable for Faculty) */}
                         {user.role === 'faculty' && (
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-bold text-[#71767b] mb-2 uppercase tracking-wide">
                                     <div className="flex items-center space-x-2">
-                                        <FiBook className="text-gray-400" />
+                                        <FiBook />
                                         <span>Subjects Handling</span>
                                     </div>
                                 </label>
                                 <textarea
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 h-24"
+                                    className="w-full px-4 py-3 bg-black border border-dark-border rounded-lg text-white focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 h-32 transition-colors placeholder-[#71767b]"
                                     value={formData.subjects}
                                     onChange={(e) => setFormData({ ...formData, subjects: e.target.value })}
                                     placeholder="E.g., Data Structures, Algorithms, Operating Systems"
                                 />
-                                <p className="mt-1 text-xs text-gray-500">List the subjects you are currently teaching.</p>
+                                <p className="mt-2 text-xs text-[#71767b]">List the subjects you are currently teaching.</p>
                             </div>
                         )}
 
-                        <div className="pt-4 flex justify-end">
+                        <div className="pt-6 flex justify-end border-t border-dark-border">
                             <button
                                 type="submit"
                                 disabled={submitting}
-                                className="flex items-center space-x-2 bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+                                className="flex items-center space-x-2 bg-primary-500 text-white px-8 py-2.5 rounded-full font-bold hover:bg-primary-600 transition-colors disabled:opacity-50 shadow-lg shadow-primary-500/20"
                             >
-                                <FiSave />
-                                <span>{submitting ? 'Saving...' : 'Save Changes'}</span>
+                                {submitting ? (
+                                    <span>Saving...</span>
+                                ) : (
+                                    <>
+                                        <FiSave />
+                                        <span>Save Changes</span>
+                                    </>
+                                )}
                             </button>
                         </div>
                     </form>

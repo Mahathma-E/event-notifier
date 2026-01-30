@@ -13,6 +13,7 @@ import {
   FiAlertCircle,
   FiInfo,
   FiTrendingUp,
+  FiArrowRight,
 } from 'react-icons/fi'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
@@ -102,15 +103,15 @@ export default function DashboardPage() {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'Emergency':
-        return 'bg-red-100 text-red-800 border-red-200'
+        return 'bg-red-500/20 text-red-400 border-red-500/50'
       case 'High':
-        return 'bg-orange-100 text-orange-800 border-orange-200'
+        return 'bg-orange-500/20 text-orange-400 border-orange-500/50'
       case 'Normal':
-        return 'bg-blue-100 text-blue-800 border-blue-200'
+        return 'bg-blue-500/20 text-blue-400 border-blue-500/50'
       case 'Info':
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+        return 'bg-gray-500/20 text-gray-400 border-gray-500/50'
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+        return 'bg-gray-500/20 text-gray-400 border-gray-500/50'
     }
   }
 
@@ -130,7 +131,7 @@ export default function DashboardPage() {
     return (
       <Layout>
         <div className="flex items-center justify-center min-h-[40vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
         </div>
       </Layout>
     )
@@ -142,147 +143,159 @@ export default function DashboardPage() {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="space-y-8 max-w-[1000px] mx-auto p-4 sm:p-6">
         {/* Welcome Section */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {user?.name}!
+          <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">
+            Dashboard
           </h1>
-          <p className="text-gray-600">
-            Here's what's happening with your notifications
+          <p className="text-[#71767b] text-lg">
+            Good afternoon, {user?.name}. Here's what's happening.
           </p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
+          <div className="bg-[#16181c] rounded-xl border border-dark-border p-5 hover:bg-[#202327] transition-colors group">
+            <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Total Notifications</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                <p className="text-sm font-bold text-[#71767b] mb-1 uppercase tracking-wide">Total Notifications</p>
+                <p className="text-3xl font-bold text-white group-hover:text-primary-500 transition-colors">{stats.total}</p>
               </div>
-              <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-                <FiBell className="w-6 h-6 text-primary-600" />
+              <div className="w-10 h-10 bg-primary-500/10 rounded-full flex items-center justify-center border border-primary-500/20 group-hover:scale-110 transition-transform">
+                <FiBell className="w-5 h-5 text-primary-500" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
+          <div className="bg-[#16181c] rounded-xl border border-dark-border p-5 hover:bg-[#202327] transition-colors group">
+            <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Unread</p>
-                <p className="text-2xl font-bold text-orange-600">{stats.unread}</p>
+                <p className="text-sm font-bold text-[#71767b] mb-1 uppercase tracking-wide">Unread</p>
+                <p className="text-3xl font-bold text-orange-500">{stats.unread}</p>
               </div>
-              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                <FiAlertCircle className="w-6 h-6 text-orange-600" />
+              <div className="w-10 h-10 bg-orange-500/10 rounded-full flex items-center justify-center border border-orange-500/20 group-hover:scale-110 transition-transform">
+                <FiAlertCircle className="w-5 h-5 text-orange-500" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
+          <div className="bg-[#16181c] rounded-xl border border-dark-border p-5 hover:bg-[#202327] transition-colors group">
+            <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Acknowledged</p>
-                <p className="text-2xl font-bold text-green-600">{stats.acknowledged}</p>
+                <p className="text-sm font-bold text-[#71767b] mb-1 uppercase tracking-wide">Acknowledged</p>
+                <p className="text-3xl font-bold text-green-500">{stats.acknowledged}</p>
               </div>
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                <FiCheckCircle className="w-6 h-6 text-green-600" />
+              <div className="w-10 h-10 bg-green-500/10 rounded-full flex items-center justify-center border border-green-500/20 group-hover:scale-110 transition-transform">
+                <FiCheckCircle className="w-5 h-5 text-green-500" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
+          <div className="bg-[#16181c] rounded-xl border border-dark-border p-5 hover:bg-[#202327] transition-colors group">
+            <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Urgent</p>
-                <p className="text-2xl font-bold text-red-600">{stats.urgent}</p>
+                <p className="text-sm font-bold text-[#71767b] mb-1 uppercase tracking-wide">Urgent</p>
+                <p className="text-3xl font-bold text-red-500">{stats.urgent}</p>
               </div>
-              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                <FiTrendingUp className="w-6 h-6 text-red-600" />
+              <div className="w-10 h-10 bg-red-500/10 rounded-full flex items-center justify-center border border-red-500/20 group-hover:scale-110 transition-transform">
+                <FiTrendingUp className="w-5 h-5 text-red-500" />
               </div>
             </div>
           </div>
         </div>
 
         {/* Recent Notifications */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">Recent Notifications</h2>
+        <div className="bg-[#16181c] rounded-xl border border-dark-border overflow-hidden">
+          <div className="p-4 border-b border-dark-border bg-[#1d1f23] flex justify-between items-center">
+            <h2 className="text-lg font-bold text-white">Recent Notifications</h2>
+            <button
+              onClick={() => router.push('/notifications')}
+              className="text-primary-500 text-sm font-bold hover:underline flex items-center gap-1"
+            >
+              View All <FiArrowRight />
+            </button>
           </div>
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-dark-border">
             {notifications.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                <FiBell className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                <p>No notifications yet</p>
+              <div className="p-12 text-center text-[#71767b]">
+                <FiBell className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p className="font-medium">No notifications yet</p>
               </div>
             ) : (
               notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-6 hover:bg-gray-50 transition-colors cursor-pointer ${notification.is_pinned ? 'bg-yellow-50 border-l-4 border-yellow-400' : ''
-                    } ${!notification.is_read ? 'bg-blue-50' : ''}`}
+                  className={`p-5 hover:bg-[#202327] transition-colors cursor-pointer group ${!notification.is_read ? 'bg-[#1a1d21]' : 'bg-transparent'}`}
                   onClick={() => router.push(`/notifications/${notification.id}`)}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        {notification.is_pinned && (
-                          <span className="text-xs font-semibold text-yellow-600 bg-yellow-100 px-2 py-1 rounded">
-                            PINNED
+                  <div className="flex items-start gap-4">
+                    {/* Icon/Avatar Placeholder */}
+                    <div className="w-10 h-10 rounded-full bg-[#2f3336] flex items-center justify-center flex-shrink-0">
+                      {getCategoryIcon(notification.category)}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center space-x-2">
+                          {notification.is_pinned && (
+                            <span className="text-[10px] font-bold text-yellow-500 bg-yellow-500/10 px-1.5 py-0.5 rounded uppercase tracking-wide border border-yellow-500/20">
+                              PINNED
+                            </span>
+                          )}
+                          <span className="text-sm font-bold text-white truncate group-hover:underline">
+                            {notification.title}
                           </span>
-                        )}
+                        </div>
+                        <span className="text-xs text-[#71767b] whitespace-nowrap">
+                          {new Date(notification.created_at).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                          })}
+                        </span>
+                      </div>
+
+                      <p className="text-[#71767b] text-sm line-clamp-2 mb-2 leading-relaxed">
+                        {notification.content}
+                      </p>
+
+                      <div className="flex items-center gap-3">
                         <span
-                          className={`text-xs font-semibold px-2 py-1 rounded border ${getPriorityColor(
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded border ${getPriorityColor(
                             notification.priority
                           )}`}
                         >
-                          {notification.priority}
+                          {notification.priority.toUpperCase()}
                         </span>
-                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        <span className="text-xs text-[#71767b] bg-[#2f3336] px-2 py-0.5 rounded-full font-medium">
                           {notification.category}
                         </span>
-                      </div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                        {notification.title}
-                      </h3>
-                      <p className="text-sm text-gray-600 line-clamp-2 mb-2">
-                        {notification.content}
-                      </p>
-                      <div className="flex items-center space-x-4 text-xs text-gray-500">
-                        <span>
-                          {new Date(notification.created_at).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </span>
                         {notification.read_count > 0 && (
-                          <span>{notification.read_count} read</span>
-                        )}
-                        {notification.acknowledged_count > 0 && (
-                          <span>{notification.acknowledged_count} acknowledged</span>
+                          <span className="text-xs text-[#71767b]">{notification.read_count} read</span>
                         )}
                       </div>
+
                       {notification.attachment_url && (
-                        <a
-                          href={`${API_URL.replace('/api', '')}${notification.attachment_url}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-2 inline-flex items-center text-xs text-primary-600 hover:text-primary-700 font-medium"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                          </svg>
-                          Attachment
-                        </a>
+                        <div className="mt-3">
+                          <a
+                            href={`${API_URL.replace('/api', '')}${notification.attachment_url}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center text-xs text-primary-500 hover:text-primary-400 font-bold bg-primary-500/10 px-3 py-1.5 rounded-full border border-primary-500/20 max-w-fit"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <svg className="w-3 h-3 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                            </svg>
+                            View Attachment
+                          </a>
+                        </div>
                       )}
                     </div>
+
                     {!notification.is_read && (
-                      <div className="ml-4">
-                        <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                      <div className="flex-shrink-0 self-center">
+                        <div className="w-2.5 h-2.5 bg-primary-500 rounded-full shadow-[0_0_8px_rgba(29,155,240,0.5)]"></div>
                       </div>
                     )}
                   </div>
@@ -290,16 +303,6 @@ export default function DashboardPage() {
               ))
             )}
           </div>
-          {notifications.length > 0 && (
-            <div className="p-4 border-t border-gray-200 text-center">
-              <button
-                onClick={() => router.push('/notifications')}
-                className="text-primary-600 hover:text-primary-700 font-medium"
-              >
-                View All Notifications →
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </Layout>
