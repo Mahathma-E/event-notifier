@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import Layout from '@/components/Layout'
 import axios from 'axios'
 import Cookies from 'js-cookie'
-import { FiArrowLeft, FiHash, FiLock, FiUserCheck, FiSend, FiUsers, FiTrash2, FiShield, FiMoreVertical, FiSearch } from 'react-icons/fi'
+import { FiArrowLeft, FiHash, FiLock, FiUserCheck, FiSend, FiUsers, FiTrash2, FiShield, FiMoreVertical, FiSearch, FiUserPlus } from 'react-icons/fi'
 import { format } from 'date-fns'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
@@ -55,8 +55,10 @@ export default function ChannelDetailsPage() {
     const [channelAdmins, setChannelAdmins] = useState<User[]>([])
     const [channelMembers, setChannelMembers] = useState<User[]>([])
     const [facultyUsers, setFacultyUsers] = useState<User[]>([])
+    const [allUsers, setAllUsers] = useState<User[]>([])
     const [showAdminModal, setShowAdminModal] = useState(false)
     const [showMembersModal, setShowMembersModal] = useState(false)
+    const [showAddMemberModal, setShowAddMemberModal] = useState(false)
 
     useEffect(() => {
         if (user && id) {
@@ -96,6 +98,7 @@ export default function ChannelDetailsPage() {
                         // Also fetch all users to filter faculty for assignment
                         const usersRes = await axios.get(`${API_URL}/users`)
                         setFacultyUsers(usersRes.data.users)
+                        setAllUsers(usersRes.data.users)
                     }
 
                     // If Admin or Channel Admin, fetch members
@@ -164,6 +167,19 @@ export default function ChannelDetailsPage() {
         }
     }
 
+    const handleDeleteChannel = async () => {
+        if (!confirm('Are you sure you want to delete this channel? This action cannot be undone.')) return
+        try {
+            const token = Cookies.get('token')
+            if (token) axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+            await axios.delete(`${API_URL}/channels/${id}`)
+            router.push('/channels')
+        } catch (error) {
+            console.error('Error deleting channel:', error)
+            alert('Failed to delete channel')
+        }
+    }
+
     const handleAddAdmin = async (userId: number) => {
         try {
             await axios.post(`${API_URL}/channels/${id}/admins`, { userId })
@@ -186,6 +202,20 @@ export default function ChannelDetailsPage() {
             setChannelAdmins(adminsRes.data)
         } catch (error) {
             console.error("Error removing admin:", error)
+        }
+    }
+
+    const handleAddMember = async (userId: number) => {
+        try {
+            await axios.post(`${API_URL}/channels/${id}/members`, { userId })
+            // Refresh members
+            const membersRes = await axios.get(`${API_URL}/channels/${id}/members`)
+            setChannelMembers(membersRes.data)
+            setShowAddMemberModal(false)
+            alert('Member added successfully')
+        } catch (error) {
+            console.error("Error adding member:", error)
+            alert("Failed to add member")
         }
     }
 
@@ -241,6 +271,15 @@ export default function ChannelDetailsPage() {
 
                         {/* Action Buttons */}
                         <div className="flex items-center gap-2">
+                            {user?.role === 'admin' && (
+                                <button
+                                    onClick={handleDeleteChannel}
+                                    className="p-2 text-red-500 hover:bg-red-500/10 rounded-full"
+                                    title="Delete Channel"
+                                >
+                                    <FiTrash2 className="w-5 h-5" />
+                                </button>
+                            )}
                             {(user?.role === 'admin' || currentUserIsAdmin) && (
                                 <button
                                     onClick={() => setShowMembersModal(true)}
@@ -402,10 +441,51 @@ export default function ChannelDetailsPage() {
                                 />
                                 <FiSearch className="absolute left-3 top-2.5 text-[#949BA4]" />
                             </div>
-                            <span className="text-[#949BA4] text-xs font-semibold uppercase tracking-wide">
-                                Showing {channelMembers.length} Members
-                            </span>
+                            <div className="flex items-center gap-4">
+                                {user?.role === 'admin' && (
+                                    <button
+                                        onClick={() => setShowAddMemberModal(true)}
+                                        className="flex items-center gap-2 bg-[#5865F2] hover:bg-[#4752C4] text-white px-3 py-1.5 rounded text-sm font-semibold transition-colors"
+                                    >
+                                        <FiUserPlus />
+                                        Add Member
+                                    </button>
+                                )}
+                                <span className="text-[#949BA4] text-xs font-semibold uppercase tracking-wide">
+                                    Showing {channelMembers.length} Members
+                                </span>
+                            </div>
                         </div>
+
+                        {/* Add Member Modal Overlay */}
+                        {showAddMemberModal && (
+                            <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-[60]">
+                                <div className="bg-[#313338] w-[400px] rounded-lg shadow-lg p-6">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h4 className="text-white font-bold text-lg">Add Member</h4>
+                                        <button onClick={() => setShowAddMemberModal(false)} className="text-gray-400 hover:text-white">
+                                            <FiXCircle />
+                                        </button>
+                                    </div>
+                                    <div className="max-h-[300px] overflow-y-auto space-y-2 custom-scrollbar pr-2">
+                                        {allUsers.filter(u => !channelMembers.some(m => m.id === u.id)).map(u => (
+                                            <div key={u.id} className="flex justify-between items-center p-2 hover:bg-[#2b2d31] rounded">
+                                                <div className="text-white text-sm">
+                                                    <div className="font-bold">{u.name}</div>
+                                                    <div className="text-xs text-gray-400">{u.email}</div>
+                                                </div>
+                                                <button
+                                                    onClick={() => handleAddMember(u.id)}
+                                                    className="bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700"
+                                                >
+                                                    Add
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Member List Table */}
                         <div className="flex-1 overflow-y-auto bg-[#2b2d31] custom-scrollbar">
@@ -487,6 +567,87 @@ export default function ChannelDetailsPage() {
                
                ... Corrected imports in the tool call below ... 
             */}
+
+            {/* Admin Management Modal */}
+            {showAdminModal && (
+                <div className="fixed inset-0 z-50 overflow-hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-[#1e1f22] w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden flex flex-col font-sans">
+                        <div className="p-6 border-b border-[#2b2d31] flex justify-between items-center bg-[#2b2d31]">
+                            <div className="flex items-center gap-2">
+                                <FiShield className="text-[#949BA4]" />
+                                <h3 className="text-white font-bold text-lg">Channel Admins</h3>
+                            </div>
+                            <button onClick={() => setShowAdminModal(false)} className="text-[#949BA4] hover:text-white transition-colors">
+                                <FiXCircle />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-6">
+                            {/* Current Admins */}
+                            <div>
+                                <h4 className="text-xs font-bold text-[#949BA4] uppercase tracking-wide mb-3">Current Admins</h4>
+                                <div className="space-y-2">
+                                    {channelAdmins.length === 0 ? (
+                                        <p className="text-[#949BA4] text-sm italic">No admins assigned yet.</p>
+                                    ) : (
+                                        channelAdmins.map(admin => (
+                                            <div key={admin.id} className="flex items-center justify-between bg-[#2b2d31] p-3 rounded-md">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-[#5865F2] flex items-center justify-center text-white font-bold text-sm">
+                                                        {admin.name.charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-white font-bold text-sm">{admin.name}</p>
+                                                        <p className="text-[#949BA4] text-xs">{admin.email}</p>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => handleRemoveAdmin(admin.id)}
+                                                    className="text-red-400 hover:text-red-500 hover:bg-red-500/10 p-2 rounded transition-colors"
+                                                    title="Remove Admin"
+                                                >
+                                                    <FiTrash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Add New Admin */}
+                            <div>
+                                <h4 className="text-xs font-bold text-[#949BA4] uppercase tracking-wide mb-3">Add New Admin</h4>
+                                <div className="bg-[#2b2d31] rounded-md border border-[#1e1f22] max-h-60 overflow-y-auto custom-scrollbar">
+                                    {facultyUsers.filter(u => !channelAdmins.some(a => a.id === u.id)).map(user => (
+                                        <div key={user.id} className="flex items-center justify-between p-3 hover:bg-[#34363c] transition-colors border-b border-[#1e1f22] last:border-0">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-white font-bold text-sm">
+                                                    {user.name.charAt(0).toUpperCase()}
+                                                </div>
+                                                <div>
+                                                    <p className="text-white font-bold text-sm">{user.name}</p>
+                                                    <p className="text-[#949BA4] text-xs">{user.role}</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => handleAddAdmin(user.id)}
+                                                className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-bold transition-colors"
+                                            >
+                                                Add
+                                            </button>
+                                        </div>
+                                    ))}
+                                    {facultyUsers.filter(u => !channelAdmins.some(a => a.id === u.id)).length === 0 && (
+                                        <div className="p-4 text-center text-[#949BA4] text-sm">
+                                            No more eligible users to add.
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </Layout >
     )
 }

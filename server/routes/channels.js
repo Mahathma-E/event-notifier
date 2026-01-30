@@ -98,10 +98,19 @@ router.get('/', authenticate, async (req, res) => {
                 const userRoleParams = userRoleIds.map((_, i) => `$${params.length + i + 1}`);
                 params.push(...userRoleIds);
 
-                // Add visibility condition to WHERE (wrapped in parens)
+                // Add userId to params for membership check
+                params.push(req.user.id);
+                const userIdParamIndex = `$${params.length}`;
+
+                // Visibility: Public OR Matching Tag OR Is Member OR Is Channel Admin
                 const visibilityCondition = `
-           (c.is_private = FALSE OR c.id IN (SELECT channel_id FROM channel_tags WHERE role_id IN (${userRoleParams.join(',')})))
-         `;
+                   (
+                     c.is_private = FALSE 
+                     OR c.id IN (SELECT channel_id FROM channel_tags WHERE role_id IN (${userRoleParams.join(',')}))
+                     OR c.id IN (SELECT channel_id FROM channel_members WHERE user_id = ${userIdParamIndex})
+                     OR c.id IN (SELECT channel_id FROM channel_admins WHERE user_id = ${userIdParamIndex})
+                   )
+                 `;
 
                 if (conditions.length > 0) {
                     query = query.replace(`WHERE ${conditions.join(' AND ')}`, `WHERE (${conditions.join(' AND ')}) AND ${visibilityCondition}`);
@@ -109,11 +118,22 @@ router.get('/', authenticate, async (req, res) => {
                     query += ` WHERE ${visibilityCondition}`;
                 }
             } else {
-                // User has no roles. Can only see public channels.
+                // User has no roles. Can see public channels OR channels where they are a member/admin.
+                params.push(req.user.id);
+                const userIdParamIndex = `$${params.length}`;
+
+                const visibilityCondition = `
+                   (
+                     c.is_private = FALSE 
+                     OR c.id IN (SELECT channel_id FROM channel_members WHERE user_id = ${userIdParamIndex})
+                     OR c.id IN (SELECT channel_id FROM channel_admins WHERE user_id = ${userIdParamIndex})
+                   )
+                 `;
+
                 if (conditions.length > 0) {
-                    query = query.replace(`WHERE ${conditions.join(' AND ')}`, `WHERE (${conditions.join(' AND ')}) AND c.is_private = FALSE`);
+                    query = query.replace(`WHERE ${conditions.join(' AND ')}`, `WHERE (${conditions.join(' AND ')}) AND ${visibilityCondition}`);
                 } else {
-                    query += ` WHERE c.is_private = FALSE`;
+                    query += ` WHERE ${visibilityCondition}`;
                 }
             }
         }
@@ -256,6 +276,30 @@ router.post('/:id/leave', authenticate, async (req, res) => {
 });
 
 // --- Member Management ---
+
+// Add member (Admin only)
+router.post('/:id/members', authenticate, authorize('admin'), async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const channelId = req.params.id;
+
+        if (!userId) {
+            return res.status(400).json({ message: 'User ID is required' });
+        }
+
+        // Verify user exists (optional, dependent on DB constraint but good for error msg)
+        // Insert into channel_members
+        await db.pool.query(
+            `INSERT INTO channel_members (channel_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+            [channelId, userId]
+        );
+
+        res.json({ message: 'Member added successfully' });
+    } catch (error) {
+        console.error('Error adding member:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
 
 // Get all members (Channel Admin or Super Admin)
 router.get('/:id/members', authenticate, async (req, res) => {
