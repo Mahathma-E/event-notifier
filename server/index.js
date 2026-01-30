@@ -20,6 +20,7 @@ const io = socketIo(server, {
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use('/uploads', express.static('uploads'));
 
 // Socket.io connection handling
 io.on('connection', (socket) => {
@@ -44,6 +45,7 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/departments', require('./routes/departments'));
+app.use('/api/od', require('./routes/od'));
 
 // Health check
 app.get('/api/health', (req, res) => {

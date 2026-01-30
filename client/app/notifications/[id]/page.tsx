@@ -28,7 +28,8 @@ interface Notification {
   department_name?: string
   department_id?: number
   year?: number
-  section?: string
+  attachment_url?: string
+  attachment_type?: string
 }
 
 export default function NotificationDetailPage() {
@@ -198,7 +199,6 @@ export default function NotificationDetailPage() {
                     <span>• {notification.department_name}</span>
                   )}
                   {notification.year && <span>• Year {notification.year}</span>}
-                  {notification.section && <span>• Section {notification.section}</span>}
                   <span>• {format(new Date(notification.created_at), 'MMM d, yyyy h:mm a')}</span>
                 </div>
               </div>
@@ -229,6 +229,28 @@ export default function NotificationDetailPage() {
             </div>
           </div>
 
+          {notification.attachment_url && (
+            <div className="px-6 pb-6 mt-0">
+              <h3 className="text-sm font-medium text-gray-900 mb-3">Attachment</h3>
+              <a
+                href={`${API_URL.replace('/api', '')}${notification.attachment_url}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group"
+              >
+                <div className="p-2 bg-primary-50 rounded-lg group-hover:bg-primary-100 transition-colors">
+                  <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                  </svg>
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-medium text-gray-900">Download Attachment</p>
+                  <p className="text-xs text-gray-500">Click to view or download</p>
+                </div>
+              </a>
+            </div>
+          )}
+
           <div className="p-6 border-t border-gray-200 bg-gray-50">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-6 text-sm text-gray-600">
@@ -239,11 +261,10 @@ export default function NotificationDetailPage() {
                 <button
                   onClick={handleAcknowledge}
                   disabled={acknowledging || notification.user_status === 'acknowledged'}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                    notification.user_status === 'acknowledged'
-                      ? 'bg-green-100 text-green-700 cursor-not-allowed'
-                      : 'bg-primary-600 text-white hover:bg-primary-700'
-                  } disabled:opacity-50`}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${notification.user_status === 'acknowledged'
+                    ? 'bg-green-100 text-green-700 cursor-not-allowed'
+                    : 'bg-primary-600 text-white hover:bg-primary-700'
+                    } disabled:opacity-50`}
                 >
                   <FiCheckCircle />
                   <span>
@@ -257,6 +278,6 @@ export default function NotificationDetailPage() {
           </div>
         </div>
       </div>
-    </Layout>
+    </Layout >
   )
 }

@@ -4,13 +4,14 @@ import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { FcGoogle } from 'react-icons/fc'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
+  const { login, loginWithGoogle } = useAuth()
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,8 +28,20 @@ export default function LoginPage() {
     }
   }
 
+  const handleGoogleLogin = async () => {
+    setError('')
+    setLoading(true)
+    try {
+      await loginWithGoogle()
+    } catch (err: any) {
+      setError(err.message || 'Google login failed')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 px-4 py-8">
       <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-primary-700 mb-2">
@@ -37,9 +50,9 @@ export default function LoginPage() {
           <p className="text-gray-600">Intelligent Digital Notification Framework</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+            <div className={`px-4 py-3 rounded border ${error.includes('verified') ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
               {error}
             </div>
           )}
@@ -55,7 +68,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              placeholder="admin@gce.edu"
+              placeholder="user@example.com"
             />
           </div>
 
@@ -77,11 +90,31 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? 'Processing...' : 'Login'}
           </button>
         </form>
+
+        <div className="mt-4">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500 uppercase tracking-wider text-xs">Or continue with</span>
+            </div>
+          </div>
+
+          <button
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            className="mt-4 w-full flex items-center justify-center gap-3 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+          >
+            <FcGoogle size={24} />
+            <span className="text-gray-700 font-medium">Google Account</span>
+          </button>
+        </div>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
@@ -90,13 +123,6 @@ export default function LoginPage() {
               Register
             </Link>
           </p>
-        </div>
-
-        <div className="mt-6 space-y-3">
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-600 mb-2 font-semibold">Default Credentials:</p>
-            <p className="text-xs text-gray-600">Admin: admin@gce.edu / admin123</p>
-          </div>
         </div>
       </div>
     </div>

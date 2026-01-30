@@ -28,6 +28,8 @@ interface Notification {
   is_read: boolean
   read_count: number
   acknowledged_count: number
+  attachment_url?: string
+  attachment_type?: string
 }
 
 export default function DashboardPage() {
@@ -263,6 +265,20 @@ export default function DashboardPage() {
                           <span>{notification.acknowledged_count} acknowledged</span>
                         )}
                       </div>
+                      {notification.attachment_url && (
+                        <a
+                          href={`${API_URL.replace('/api', '')}${notification.attachment_url}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 inline-flex items-center text-xs text-primary-600 hover:text-primary-700 font-medium"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                          </svg>
+                          Attachment
+                        </a>
+                      )}
                     </div>
                     {!notification.is_read && (
                       <div className="ml-4">

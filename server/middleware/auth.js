@@ -1,28 +1,33 @@
-const jwt = require('jsonwebtoken');
+const admin = require('../config/firebase-admin');
 const db = require('../config/database');
 
 const authenticate = async (req, res, next) => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    const authHeader = req.header('Authorization');
+    const token = authHeader?.replace('Bearer ', '');
 
     if (!token) {
       return res.status(401).json({ message: 'No token, authorization denied' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_super_secret_jwt_key_change_this_in_production');
-    
+    // Verify Firebase ID Token
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    const { email } = decodedToken;
+
     const result = await db.pool.query(
-      'SELECT id, email, name, role, department_id, year, section FROM users WHERE id = $1',
-      [decoded.userId]
+      'SELECT id, email, name, role, department_id, year, designation, subjects FROM users WHERE email = $1',
+      [email]
     );
 
     if (result.rows.length === 0) {
-      return res.status(401).json({ message: 'User not found' });
+      return res.status(401).json({ message: 'User profile not found in database. Please register.' });
     }
 
     req.user = result.rows[0];
+    req.firebaseUser = decodedToken;
     next();
   } catch (error) {
+    console.error('Firebase Auth Error:', error);
     res.status(401).json({ message: 'Token is not valid' });
   }
 };

@@ -9,7 +9,7 @@ const router = express.Router();
 router.get('/', authenticate, authorize('admin'), async (req, res) => {
   try {
     const result = await db.pool.query(
-      `SELECT u.id, u.email, u.name, u.role, u.department_id, u.year, u.section, 
+      `SELECT u.id, u.email, u.name, u.role, u.department_id, u.year, u.designation, u.subjects, 
               d.name as department_name, u.created_at
        FROM users u
        LEFT JOIN departments d ON u.department_id = d.id
@@ -32,7 +32,7 @@ router.get('/:id', authenticate, async (req, res) => {
     }
 
     const result = await db.pool.query(
-      `SELECT u.id, u.email, u.name, u.role, u.department_id, u.year, u.section, 
+      `SELECT u.id, u.email, u.name, u.role, u.department_id, u.year, u.designation, u.subjects, 
               d.name as department_name, u.created_at
        FROM users u
        LEFT JOIN departments d ON u.department_id = d.id
@@ -54,9 +54,10 @@ router.get('/:id', authenticate, async (req, res) => {
 // Update user
 router.put('/:id', authenticate, [
   body('name').optional().trim().notEmpty(),
-  body('department_id').optional().isInt(),
-  body('year').optional().isInt(),
-  body('section').optional().trim(),
+  body('department_id').optional({ nullable: true }).isInt(),
+  body('year').optional({ nullable: true }).isInt(),
+  body('designation').optional({ nullable: true }),
+  body('subjects').optional({ nullable: true }),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -69,7 +70,7 @@ router.put('/:id', authenticate, [
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    const { name, department_id, year, section } = req.body;
+    const { name, department_id, year, designation, subjects } = req.body;
     const updates = [];
     const values = [];
     let paramCount = 1;
@@ -86,9 +87,13 @@ router.put('/:id', authenticate, [
       updates.push(`year = $${paramCount++}`);
       values.push(year);
     }
-    if (section !== undefined) {
-      updates.push(`section = $${paramCount++}`);
-      values.push(section);
+    if (designation !== undefined) {
+      updates.push(`designation = $${paramCount++}`);
+      values.push(designation);
+    }
+    if (subjects !== undefined) {
+      updates.push(`subjects = $${paramCount++}`);
+      values.push(subjects);
     }
 
     updates.push(`updated_at = CURRENT_TIMESTAMP`);
@@ -96,7 +101,7 @@ router.put('/:id', authenticate, [
 
     const result = await db.pool.query(
       `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramCount}
-       RETURNING id, email, name, role, department_id, year, section`,
+       RETURNING id, email, name, role, department_id, year, designation, subjects`,
       values
     );
 

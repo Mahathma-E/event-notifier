@@ -19,12 +19,14 @@ const initialize = async () => {
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         email VARCHAR(255) UNIQUE NOT NULL,
-        password VARCHAR(255) NOT NULL,
+        password VARCHAR(255),
+        firebase_uid VARCHAR(255) UNIQUE,
         name VARCHAR(255) NOT NULL,
         role VARCHAR(50) NOT NULL CHECK (role IN ('admin', 'faculty', 'student')),
         department_id INTEGER,
         year INTEGER,
-        section VARCHAR(10),
+        designation VARCHAR(50),
+        subjects TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -51,7 +53,6 @@ const initialize = async () => {
         created_by INTEGER NOT NULL REFERENCES users(id),
         department_id INTEGER REFERENCES departments(id),
         year INTEGER,
-        section VARCHAR(10),
         scheduled_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -69,6 +70,23 @@ const initialize = async () => {
         read_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         acknowledged_at TIMESTAMP,
         UNIQUE(notification_id, user_id)
+      )
+    `);
+
+    // Create OD requests table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS od_requests (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id),
+        reason TEXT NOT NULL,
+        start_date DATE NOT NULL,
+        end_date DATE NOT NULL,
+        total_days INTEGER NOT NULL,
+        status VARCHAR(20) DEFAULT 'pending_coordinator' CHECK (status IN ('pending_coordinator', 'pending_hod', 'approved', 'rejected')),
+        comment TEXT,
+        action_by INTEGER REFERENCES users(id),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 

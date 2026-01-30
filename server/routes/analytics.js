@@ -136,10 +136,6 @@ router.get('/notification/:id', authenticate, authorize('admin', 'faculty'), asy
       targetQuery += ` AND (year = $${targetParams.length + 1} OR year IS NULL)`;
       targetParams.push(notification.rows[0].year);
     }
-    if (notification.rows[0].section) {
-      targetQuery += ` AND (section = $${targetParams.length + 1} OR section IS NULL)`;
-      targetParams.push(notification.rows[0].section);
-    }
 
     const targetUsers = await db.pool.query(targetQuery, targetParams);
     const totalTarget = parseInt(targetUsers.rows[0].total);
@@ -160,7 +156,7 @@ router.get('/notification/:id', authenticate, authorize('admin', 'faculty'), asy
     // Get user-wise acknowledgment details
     const userDetails = await db.pool.query(
       `SELECT 
-         u.id, u.name, u.email, u.department_id, u.year, u.section,
+         u.id, u.name, u.email, u.department_id, u.year,
          d.name as department_name,
          a.status, a.read_at, a.acknowledged_at
        FROM users u

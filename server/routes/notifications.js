@@ -3,12 +3,44 @@ const { body, validationResult } = require('express-validator');
 const db = require('../config/database');
 const { authenticate, authorize } = require('../middleware/auth');
 
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
 const router = express.Router();
+
+// Configure Multer
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = 'uploads/';
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir);
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname.replace(/\s+/g, '-'));
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|xls|xlsx|ppt|pptx/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    if (extname && mimetype) {
+      return cb(null, true);
+    }
+    cb(new Error('Only images, PDFs, and Office documents are allowed'));
+  }
+});
 
 // Get notifications with filters
 router.get('/', authenticate, async (req, res) => {
   try {
-    const { category, priority, department_id, year, section, search, page = 1, limit = 20 } = req.query;
+    const { category, priority, department_id, year, search, page = 1, limit = 20 } = req.query;
     const offset = (page - 1) * limit;
 
     let query = `
@@ -30,20 +62,16 @@ router.get('/', authenticate, async (req, res) => {
 
     // Apply role-based filtering
     if (req.user.role === 'student') {
-      // Students see notifications for their department, year, section, or general ones
       query += ` AND (
         (n.department_id IS NULL OR n.department_id = $${paramCount++}) AND
-        (n.year IS NULL OR n.year = $${paramCount++}) AND
-        (n.section IS NULL OR n.section = $${paramCount++} OR n.section = '')
+        (n.year IS NULL OR n.year = $${paramCount++})
       )`;
-      params.push(req.user.department_id, req.user.year, req.user.section);
+      params.push(req.user.department_id, req.user.year);
     } else if (req.user.role === 'faculty') {
-      // Faculty see notifications for their department or general ones
       query += ` AND (n.department_id IS NULL OR n.department_id = $${paramCount++})`;
       params.push(req.user.department_id);
     }
 
-    // Apply filters
     if (category) {
       query += ` AND n.category = $${paramCount++}`;
       params.push(category);
@@ -60,10 +88,6 @@ router.get('/', authenticate, async (req, res) => {
       query += ` AND n.year = $${paramCount++}`;
       params.push(year);
     }
-    if (section) {
-      query += ` AND n.section = $${paramCount++}`;
-      params.push(section);
-    }
     if (search) {
       query += ` AND (n.title ILIKE $${paramCount} OR n.content ILIKE $${paramCount})`;
       params.push(`%${search}%`);
@@ -77,7 +101,6 @@ router.get('/', authenticate, async (req, res) => {
 
     const result = await db.pool.query(query, params);
 
-    // Get total count
     let countQuery = `SELECT COUNT(DISTINCT n.id) as total FROM notifications n WHERE 1=1`;
     const countParams = [];
     let countParamCount = 1;
@@ -85,10 +108,9 @@ router.get('/', authenticate, async (req, res) => {
     if (req.user.role === 'student') {
       countQuery += ` AND (
         (n.department_id IS NULL OR n.department_id = $${countParamCount++}) AND
-        (n.year IS NULL OR n.year = $${countParamCount++}) AND
-        (n.section IS NULL OR n.section = $${countParamCount++} OR n.section = '')
+        (n.year IS NULL OR n.year = $${countParamCount++})
       )`;
-      countParams.push(req.user.department_id, req.user.year, req.user.section);
+      countParams.push(req.user.department_id, req.user.year);
     } else if (req.user.role === 'faculty') {
       countQuery += ` AND (n.department_id IS NULL OR n.department_id = $${countParamCount++})`;
       countParams.push(req.user.department_id);
@@ -158,35 +180,35 @@ router.get('/:id', authenticate, async (req, res) => {
 });
 
 // Create notification
-router.post('/', authenticate, authorize('admin', 'faculty'), [
+router.post('/', authenticate, authorize('admin', 'faculty'), upload.single('attachment'), [
   body('title').trim().notEmpty().withMessage('Title is required'),
   body('content').trim().notEmpty().withMessage('Content is required'),
   body('category').isIn(['Academic', 'Exam', 'Placement', 'Events', 'Administrative', 'Emergency']),
   body('priority').isIn(['Emergency', 'High', 'Normal', 'Info']),
-  body('department_id').optional().isInt(),
-  body('year').optional().isInt(),
-  body('section').optional().trim(),
-  body('scheduled_at').optional().isISO8601(),
-  body('is_pinned').optional().isBoolean(),
+  body('department_id').optional({ checkFalsy: true }).isInt(),
+  body('year').optional({ checkFalsy: true }).isInt(),
+  body('scheduled_at').optional({ checkFalsy: true }).isISO8601(),
+  body('is_pinned').optional().toBoolean(),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ errors: errors.array(), message: 'Validation failed' });
     }
 
-    const { title, content, category, priority, department_id, year, section, scheduled_at, is_pinned } = req.body;
+    const { title, content, category, priority, department_id, year, scheduled_at, is_pinned } = req.body;
+    const attachment_url = req.file ? `/uploads/${req.file.filename}` : null;
+    const attachment_type = req.file ? req.file.mimetype : null;
 
-    // Faculty can only create notifications for their department
     if (req.user.role === 'faculty' && department_id && department_id !== req.user.department_id) {
       return res.status(403).json({ message: 'You can only create notifications for your department' });
     }
 
     const result = await db.pool.query(
-      `INSERT INTO notifications (title, content, category, priority, created_by, department_id, year, section, scheduled_at, is_pinned)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      `INSERT INTO notifications (title, content, category, priority, created_by, department_id, year, scheduled_at, is_pinned, attachment_url, attachment_type)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING *`,
-      [title, content, category, priority, req.user.id, department_id || null, year || null, section || null, scheduled_at || null, is_pinned || false]
+      [title, content, category, priority, req.user.id, department_id || null, year || null, scheduled_at || null, is_pinned === 'true' || is_pinned === true || false, attachment_url, attachment_type]
     );
 
     const notification = result.rows[0];
@@ -194,7 +216,6 @@ router.post('/', authenticate, authorize('admin', 'faculty'), [
     // Emit real-time notification
     const io = req.app.get('io');
     if (io) {
-      // Determine target users based on filters
       let targetQuery = 'SELECT id FROM users WHERE 1=1';
       const targetParams = [];
 
@@ -206,10 +227,6 @@ router.post('/', authenticate, authorize('admin', 'faculty'), [
         targetQuery += ` AND (year = $${targetParams.length + 1} OR year IS NULL)`;
         targetParams.push(year);
       }
-      if (section) {
-        targetQuery += ` AND (section = $${targetParams.length + 1} OR section IS NULL)`;
-        targetParams.push(section);
-      }
 
       const targetUsers = await db.pool.query(targetQuery, targetParams);
       targetUsers.rows.forEach(user => {
@@ -220,7 +237,7 @@ router.post('/', authenticate, authorize('admin', 'faculty'), [
     res.status(201).json({ notification });
   } catch (error) {
     console.error('Create notification error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: error.message || 'Server error' });
   }
 });
 
@@ -238,9 +255,8 @@ router.put('/:id', authenticate, authorize('admin', 'faculty'), [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    // Check if notification exists and user has permission
     const existing = await db.pool.query(
-      'SELECT created_by, department_id FROM notifications WHERE id = $1',
+      'SELECT created_by FROM notifications WHERE id = $1',
       [req.params.id]
     );
 
@@ -248,7 +264,6 @@ router.put('/:id', authenticate, authorize('admin', 'faculty'), [
       return res.status(404).json({ message: 'Notification not found' });
     }
 
-    // Faculty can only update their own notifications
     if (req.user.role === 'faculty' && existing.rows[0].created_by !== req.user.id) {
       return res.status(403).json({ message: 'Access denied' });
     }
@@ -298,7 +313,6 @@ router.put('/:id', authenticate, authorize('admin', 'faculty'), [
 // Delete notification
 router.delete('/:id', authenticate, authorize('admin', 'faculty'), async (req, res) => {
   try {
-    // Check if notification exists and user has permission
     const existing = await db.pool.query(
       'SELECT created_by FROM notifications WHERE id = $1',
       [req.params.id]
@@ -308,13 +322,11 @@ router.delete('/:id', authenticate, authorize('admin', 'faculty'), async (req, r
       return res.status(404).json({ message: 'Notification not found' });
     }
 
-    // Faculty can only delete their own notifications
     if (req.user.role === 'faculty' && existing.rows[0].created_by !== req.user.id) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
     await db.pool.query('DELETE FROM notifications WHERE id = $1', [req.params.id]);
-
     res.json({ message: 'Notification deleted successfully' });
   } catch (error) {
     console.error('Delete notification error:', error);
@@ -334,13 +346,11 @@ router.post('/:id/acknowledge', authenticate, [
 
     const { status } = req.body;
 
-    // Check if notification exists
     const notification = await db.pool.query('SELECT id FROM notifications WHERE id = $1', [req.params.id]);
     if (notification.rows.length === 0) {
       return res.status(404).json({ message: 'Notification not found' });
     }
 
-    // Insert or update acknowledgment
     const result = await db.pool.query(
       `INSERT INTO acknowledgments (notification_id, user_id, status, read_at, acknowledged_at)
        VALUES ($1, $2, $3, CURRENT_TIMESTAMP, $4)

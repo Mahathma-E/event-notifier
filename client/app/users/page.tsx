@@ -18,7 +18,6 @@ interface User {
   department_id?: number
   department_name?: string
   year?: number
-  section?: string
   created_at: string
 }
 
@@ -111,7 +110,7 @@ export default function UsersPage() {
                     Department
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Year / Section
+                    Year
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
@@ -130,10 +129,10 @@ export default function UsersPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 py-1 text-xs font-semibold rounded capitalize ${user.role === 'admin'
-                            ? 'bg-purple-100 text-purple-800'
-                            : user.role === 'faculty'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-green-100 text-green-800'
+                          ? 'bg-purple-100 text-purple-800'
+                          : user.role === 'faculty'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-green-100 text-green-800'
                           }`}
                       >
                         {user.role}
@@ -144,9 +143,14 @@ export default function UsersPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {user.year ? `Year ${user.year}` : '-'}
-                      {user.section ? ` / ${user.section}` : ''}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                      <button
+                        onClick={() => router.push(`/users/${user.id}/edit`)}
+                        className="text-primary-600 hover:text-primary-900 p-2 hover:bg-primary-50 rounded-lg transition-colors"
+                      >
+                        <FiEdit className="w-5 h-5" />
+                      </button>
                       <button
                         onClick={() => handleDelete(user.id)}
                         className="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded-lg transition-colors"

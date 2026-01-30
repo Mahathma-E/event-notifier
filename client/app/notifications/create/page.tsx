@@ -22,9 +22,10 @@ export default function CreateNotificationPage() {
     priority: 'Normal',
     department_id: '',
     year: '',
-    section: '',
+    scheduled_at: '',
     scheduled_at: '',
     is_pinned: false,
+    attachment: null as File | null,
   })
 
   useEffect(() => {
@@ -60,10 +61,15 @@ export default function CreateNotificationPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target
-    setFormData({
-      ...formData,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
-    })
+    if (type === 'file') {
+      const file = (e.target as HTMLInputElement).files?.[0] || null
+      setFormData({ ...formData, attachment: file })
+    } else {
+      setFormData({
+        ...formData,
+        [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
+      })
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -76,19 +82,24 @@ export default function CreateNotificationPage() {
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
       }
 
-      const payload = {
-        title: formData.title,
-        content: formData.content,
-        category: formData.category,
-        priority: formData.priority,
-        department_id: formData.department_id ? parseInt(formData.department_id) : null,
-        year: formData.year ? parseInt(formData.year) : null,
-        section: formData.section || null,
-        scheduled_at: formData.scheduled_at || null,
-        is_pinned: formData.is_pinned,
+      const payload = new FormData()
+      payload.append('title', formData.title)
+      payload.append('content', formData.content)
+      payload.append('category', formData.category)
+      payload.append('priority', formData.priority)
+      if (formData.department_id) payload.append('department_id', formData.department_id)
+      if (formData.year) payload.append('year', formData.year)
+      if (formData.scheduled_at) payload.append('scheduled_at', formData.scheduled_at)
+      payload.append('is_pinned', String(formData.is_pinned))
+      if (formData.attachment) {
+        payload.append('attachment', formData.attachment)
       }
 
-      await axios.post(`${API_URL}/notifications`, payload)
+      await axios.post(`${API_URL}/notifications`, payload, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
       router.push('/notifications')
     } catch (error: any) {
       alert(error.response?.data?.message || 'Failed to create notification')
@@ -230,20 +241,6 @@ export default function CreateNotificationPage() {
                   <option value="4">4th Year</option>
                 </select>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Section
-                </label>
-                <input
-                  type="text"
-                  name="section"
-                  value={formData.section}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-                  placeholder="A, B, C, etc."
-                />
-              </div>
             </div>
 
             <div>
@@ -257,6 +254,22 @@ export default function CreateNotificationPage() {
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Attachment (Optional)
+              </label>
+              <input
+                type="file"
+                name="attachment"
+                onChange={handleChange}
+                accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Accepted formats: PDF, Word, Excel, Images (Max 10MB)
+              </p>
             </div>
 
             <div className="flex items-center">
@@ -290,8 +303,8 @@ export default function CreateNotificationPage() {
               </button>
             </div>
           </form>
-        </div>
-      </div>
-    </Layout>
+        </div >
+      </div >
+    </Layout >
   )
 }

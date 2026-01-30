@@ -14,6 +14,7 @@ import {
   FiMenu,
   FiX,
   FiUser,
+  FiCheckCircle,
 } from 'react-icons/fi'
 
 interface LayoutProps {
@@ -40,6 +41,8 @@ export default function Layout({ children }: LayoutProps) {
       ? [{ href: '/analytics', label: 'Analytics', icon: FiBarChart2 }]
       : []),
     ...(user?.role === 'admin' ? [{ href: '/users', label: 'Users', icon: FiUsers }] : []),
+    { href: '/od', label: 'OD Requests', icon: FiCheckCircle },
+    { href: '/profile', label: 'My Profile', icon: FiUser },
   ]
 
   return (
